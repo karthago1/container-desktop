@@ -2,12 +2,12 @@ use std::{any::Any, thread, time, vec};
 
 use iced::{
     theme,
-    widget::{column, container, scrollable, text},
+    widget::{container, scrollable, text},
     Command, Length,
 };
 
 use crate::{
-    container_item::ContainerItem,
+    container_item::{ContainerItem, Status},
     iview::{IView, IViewState, ViewMessage, ViewState},
 };
 
@@ -43,13 +43,26 @@ impl IView for ContainerView {
         match self.state.view_state {
             ViewState::Uninitialized => empty_view(),
             ViewState::Loading => empty_view(),
-            ViewState::Loaded => container(scrollable(column(
-                self.state
-                    .containers
-                    .iter()
-                    .map(|item| item.view().into())
+            ViewState::Loaded => container(scrollable(iced::widget::row(
+                (0usize..3)
+                    .map(|i| {
+                        {
+                            iced::widget::column(
+                                self.state
+                                    .containers
+                                    .iter()
+                                    .map(|item| item.get(i, 32.0).into())
+                                    .collect(),
+                            )
+                            .spacing(4)
+                        }
+                        .into()
+                    })
                     .collect(),
-            ))),
+            )))
+            .padding(2)
+            .width(Length::Fill)
+            .style(theme::Container::Box),
         }
     }
 
@@ -88,12 +101,18 @@ impl IView for ContainerView {
 impl ContainerView {
     async fn load() -> Box<dyn IViewState + Send> {
         dbg!("load called..");
-        thread::sleep(time::Duration::from_secs(3));
+        thread::sleep(time::Duration::from_secs(1));
         Box::new(State {
             view_state: ViewState::Loaded,
             containers: vec![
-                ContainerItem::new("12345".to_string()),
-                ContainerItem::new("new Contrainer".to_string()),
+                ContainerItem::new("12345".to_string(), Status::Running, "iotcore".to_string()),
+                ContainerItem::new(
+                    "new Contrainer".to_string(),
+                    Status::Exited,
+                    "sha256:ea49d6ddc21b6ca2e00b002e7f254325df0ff7eb1a9eb8a9a15ad151eda39be0"
+                        .to_string(),
+                ),
+                ContainerItem::new("mono".to_string(), Status::Exited, "Ubuntu".to_string()),
             ],
         })
     }

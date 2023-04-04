@@ -40,14 +40,12 @@ impl Application for MainWindow {
     fn new(_flags: ()) -> (MainWindow, Command<Message>) {
         let mut w = MainWindow {
             menu: MainMenu::new(vec![
-                MainMenuItem::new("Dashboard".to_string(), "ferris.png".to_string()),
                 MainMenuItem::new("Containers".to_string(), "container.png".to_string()),
                 MainMenuItem::new("Images".to_string(), "image.png".to_string()),
                 MainMenuItem::new("Volumes".to_string(), "settings.png".to_string()),
                 MainMenuItem::new("Settings".to_string(), "settings.png".to_string()),
             ]),
             views: vec![
-                Box::<ContainerView>::default(),
                 Box::<ContainerView>::default(),
                 Box::<ContainerView>::default(),
                 Box::<VolumeView>::default(),
