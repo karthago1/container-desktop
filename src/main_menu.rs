@@ -24,6 +24,12 @@ pub enum MainMenuMessage {
     SelectedIndex(usize),
 }
 
+impl MainMenuItem {
+    pub fn new(text: String, icon: String) -> Self {
+        Self { text, icon }
+    }
+}
+
 impl MainMenu {
     pub fn new(items: Vec<MainMenuItem>) -> Self {
         Self {
@@ -41,49 +47,51 @@ impl MainMenu {
         }
     }
 
-    pub fn view(
-        &self,
-        //item: impl Into<Element<'a, ListViewMessage, Renderer>>,
-    ) -> Element<MainMenuMessage> {
+    pub fn view(&self, badges: Vec<Option<i32>>) -> Element<MainMenuMessage> {
         column(
             self.items
                 .iter()
                 .enumerate()
                 .map(|(index, item)| {
-                    button(
-                        row![
-                            container(
-                                image(format!(
-                                    "{}/icons/{}",
-                                    env!("CARGO_MANIFEST_DIR"),
-                                    item.icon
-                                ))
-                                .height(Length::Fill)
-                            )
+                    let mut row = row![
+                        container(
+                            image(format!(
+                                "{}/icons/{}",
+                                env!("CARGO_MANIFEST_DIR"),
+                                item.icon
+                            ))
                             .height(Length::Fill)
-                            .padding([0, 4]),
-                            text(&item.text)
-                                .vertical_alignment(Vertical::Center)
-                                .width(Length::Fill),
+                        )
+                        .height(Length::Fill)
+                        .padding([0, 4]),
+                        text(&item.text)
+                            .vertical_alignment(Vertical::Center)
+                            .width(Length::Fill),
+                    ]
+                    .align_items(iced::Alignment::Center);
+
+                    if let Some(b) = badges[index] {
+                        row = row.push(
                             button(
-                                text("25")
+                                text(b.to_string())
                                     .size(14)
                                     .horizontal_alignment(Horizontal::Center)
-                                    .style(Color::WHITE)
+                                    .style(Color::WHITE),
                             )
                             .style(theme::Button::Custom(Box::new(ButtonChipStyle::new(10.)))),
-                        ]
-                        .align_items(iced::Alignment::Center),
-                    )
-                    .height(self.item_height)
-                    .on_press(MainMenuMessage::SelectedIndex(index))
-                    .width(Length::Fill)
-                    .style(if index == self.selected_index {
-                        theme::Button::Secondary
-                    } else {
-                        theme::Button::Text
-                    })
-                    .into()
+                        );
+                    }
+
+                    button(row)
+                        .height(self.item_height)
+                        .on_press(MainMenuMessage::SelectedIndex(index))
+                        .width(Length::Fill)
+                        .style(if index == self.selected_index {
+                            theme::Button::Secondary
+                        } else {
+                            theme::Button::Text
+                        })
+                        .into()
                 })
                 .collect(),
         )

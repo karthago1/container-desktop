@@ -79,6 +79,10 @@ impl IView for ContainerView {
         }
         Command::none()
     }
+
+    fn get_badge_number(&self) -> Option<i32> {
+        Some(self.state.containers.len() as i32)
+    }
 }
 
 impl ContainerView {

@@ -27,4 +27,8 @@ impl IView for VolumeView {
         }
         Command::none()
     }
+
+    fn get_badge_number(&self) -> Option<i32> {
+            None
+    }
 }

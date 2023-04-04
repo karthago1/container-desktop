@@ -25,4 +25,5 @@ pub trait IViewState: std::fmt::Debug {
 pub trait IView {
     fn view<'a>(&self) -> Container<'a, crate::Message, Renderer>;
     fn update(&mut self, message: ViewMessage) -> Command<ViewMessage>;
+    fn get_badge_number(&self) -> Option<i32>;
 }

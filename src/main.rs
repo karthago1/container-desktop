@@ -40,32 +40,17 @@ impl Application for MainWindow {
     fn new(_flags: ()) -> (MainWindow, Command<Message>) {
         let mut w = MainWindow {
             menu: MainMenu::new(vec![
-                MainMenuItem {
-                    text: "Dashboard".to_string(),
-                    icon: "ferris.png".to_string(),
-                },
-                MainMenuItem {
-                    text: "Containers".to_string(),
-                    icon: "container.png".to_string(),
-                },
-                MainMenuItem {
-                    text: "Images".to_string(),
-                    icon: "image.png".to_string(),
-                },
-                MainMenuItem {
-                    text: "Volumes".to_string(),
-                    icon: "settings.png".to_string(),
-                },
-                MainMenuItem {
-                    text: "Settings".to_string(),
-                    icon: "settings.png".to_string(),
-                },
+                MainMenuItem::new("Dashboard".to_string(), "ferris.png".to_string()),
+                MainMenuItem::new("Containers".to_string(), "container.png".to_string()),
+                MainMenuItem::new("Images".to_string(), "image.png".to_string()),
+                MainMenuItem::new("Volumes".to_string(), "settings.png".to_string()),
+                MainMenuItem::new("Settings".to_string(), "settings.png".to_string()),
             ]),
             views: vec![
                 Box::<ContainerView>::default(),
                 Box::<ContainerView>::default(),
                 Box::<ContainerView>::default(),
-                Box::<ContainerView>::default(),
+                Box::<VolumeView>::default(),
                 Box::<VolumeView>::default(),
             ],
         };
@@ -101,8 +86,9 @@ impl Application for MainWindow {
     }
 
     fn view(&self) -> Element<Message> {
+        let badges: Vec<Option<i32>> = self.views.iter().map(|e| e.get_badge_number()).collect();
         row(vec![
-            self.menu.view().map(Message::MenuMessage),
+            self.menu.view(badges).map(Message::MenuMessage),
             self.views[self.menu.selected_index]
                 .view()
                 .height(Length::Fill)
