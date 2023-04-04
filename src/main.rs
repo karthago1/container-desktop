@@ -2,7 +2,7 @@ use container_view::ContainerView;
 use iced::{theme, widget::row, Application, Color, Command, Element, Length, Settings, Theme};
 use iview::{IView, ViewMessage};
 use main_menu::{MainMenu, MainMenuItem};
-use message::Message;
+use message::{IndexedViewMessage, Message};
 use volume_view::VolumeView;
 
 #[path = "./views/container_view.rs"]
@@ -62,11 +62,11 @@ impl Application for MainWindow {
                 },
             ]),
             views: vec![
-                Box::new(ContainerView::default()),
-                Box::new(ContainerView::default()),
-                Box::new(ContainerView::default()),
-                Box::new(VolumeView::default()),
-                Box::new(VolumeView::default()),
+                Box::<ContainerView>::default(),
+                Box::<ContainerView>::default(),
+                Box::<ContainerView>::default(),
+                Box::<ContainerView>::default(),
+                Box::<VolumeView>::default(),
             ],
         };
 
@@ -75,13 +75,13 @@ impl Application for MainWindow {
             .first_mut()
             .unwrap()
             .update(ViewMessage::Init)
-            .map(|c| Message::View(c));
+            .map(|msg| Message::View(IndexedViewMessage::new(0, msg)));
 
         (w, cmd)
     }
 
     fn title(&self) -> String {
-        "VM Desktop".to_string()
+        "Container Desktop".to_string()
     }
 
     fn update(&mut self, message: Message) -> Command<Message> {
@@ -89,19 +89,20 @@ impl Application for MainWindow {
             Message::MenuMessage(message) => {
                 let _ = self.views[self.menu.selected_index].update(ViewMessage::Unselected);
                 self.menu.update(message);
-                self.views[self.menu.selected_index]
+                let view_index = self.menu.selected_index;
+                self.views[view_index]
                     .update(ViewMessage::Selected)
-                    .map(|c| Message::View(c))
+                    .map(move |new_msg| Message::View(IndexedViewMessage::new(view_index, new_msg)))
             }
-            Message::View(message) => self.views[self.menu.selected_index]
-                .update(message)
-                .map(|c| Message::View(c)),
+            Message::View(msg) => self.views[msg.index]
+                .update(msg.msg)
+                .map(move |new_msg| Message::View(IndexedViewMessage::new(msg.index, new_msg))),
         }
     }
 
     fn view(&self) -> Element<Message> {
         row(vec![
-            self.menu.view().map(move |m| Message::MenuMessage(m)),
+            self.menu.view().map(Message::MenuMessage),
             self.views[self.menu.selected_index]
                 .view()
                 .height(Length::Fill)
