@@ -18,6 +18,9 @@ mod container_item;
 #[path = "./views/controls/button_chip_style.rs"]
 mod button_chip_style;
 
+#[path = "./views/controls/ui.rs"]
+mod ui;
+
 mod main_menu;
 
 mod message;
@@ -89,8 +92,7 @@ impl Application for MainWindow {
             self.menu.view(badges).map(Message::MenuMessage),
             self.views[self.menu.selected_index]
                 .view()
-                .height(Length::Fill)
-                .into(),
+                .map(|msg| Message::View(IndexedViewMessage::new(self.menu.selected_index, msg))),
         ])
         .into()
     }

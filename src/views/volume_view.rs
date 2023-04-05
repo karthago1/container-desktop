@@ -10,9 +10,9 @@ use crate::iview::{IView, ViewMessage};
 pub struct VolumeView;
 
 impl IView for VolumeView {
-    fn view<'a>(&self) -> iced::widget::Container<'a, crate::Message, iced::Renderer> {
+    fn view(&self) -> iced::Element<ViewMessage> {
         //button(text("Volume"));
-        container(text("Volume"))
+        container(text("Volume")).into()
     }
 
     fn update(&mut self, message: ViewMessage) -> Command<ViewMessage> {

@@ -1,11 +1,11 @@
 use std::any::Any;
 
-use iced::{widget::Container, Command, Renderer};
+use iced::Command;
 
 #[derive(Debug)]
 pub enum ViewMessage {
     Init,
-    Loaded(Box<dyn IViewState + Send>),
+    Loaded(Box<dyn IViewMsg + Send>),
     Selected,
     Unselected,
 }
@@ -18,12 +18,12 @@ pub enum ViewState {
     Loaded,
 }
 
-pub trait IViewState: std::fmt::Debug {
+pub trait IViewMsg: std::fmt::Debug {
     fn as_any(&self) -> &dyn Any;
 }
 
 pub trait IView {
-    fn view<'a>(&self) -> Container<'a, crate::Message, Renderer>;
+    fn view(&self) -> iced::Element<ViewMessage>;
     fn update(&mut self, message: ViewMessage) -> Command<ViewMessage>;
     fn get_badge_number(&self) -> Option<i32>;
 }

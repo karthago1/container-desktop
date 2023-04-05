@@ -1,5 +1,11 @@
-use iced::widget::{button, image, text};
-use iced_native::widget::container;
+use iced::{
+    alignment::Vertical,
+    theme,
+    widget::{button, text},
+    Length,
+};
+
+use crate::ui;
 
 #[derive(Debug, Clone)]
 pub struct ContainerItem {
@@ -14,6 +20,18 @@ pub enum Status {
     Running,
 }
 
+impl Status {
+    pub fn is_running(&self) -> bool {
+        match *self {
+            Status::Running => true,
+            _ => false,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct ContainerItemMsg(usize);
+
 impl ContainerItem {
     pub fn new(name: String, status: Status, image: String) -> Self {
         Self {
@@ -23,30 +41,41 @@ impl ContainerItem {
         }
     }
 
-    pub fn get<'a, Message: 'a>(
-        &self,
-        index: usize,
-        height: f32,
-    ) -> impl Into<iced::Element<'a, Message, iced::Renderer>> {
+    pub fn columns() -> usize {
+        return 5;
+    }
+    pub fn get(&self, index: usize, height: f32) -> iced::Element<ContainerItemMsg> {
         match index {
-            0 => container(image(format!(
-                "{}/icons/container.png",
-                env!("CARGO_MANIFEST_DIR")
-            )))
-            .style(if let Status::Running = self.status {
-                iced::theme::Container::Box
-            } else {
-                iced::theme::Container::Transparent
-            }),
-            1 => container(text(&self.name).size(height * 0.5)).padding(4),
-            2 => container(text(&self.image).size(height * 0.5)),
-            /*3 => container(button(image(format!(
-                "{}/icons/play.png",
-                env!("CARGO_MANIFEST_DIR")
-            )))),*/
-            _ => container(text("Unsupported")),
+            0 => ui::icon_status("container.png", self.status.is_running())
+                .height(height)
+                .into(),
+            1 => button(
+                text(&self.name)
+                    .size(height * 0.5)
+                    .vertical_alignment(Vertical::Center),
+            )
+            .style(theme::Button::Text)
+            .height(height)
+            .on_press(ContainerItemMsg(index))
+            .into(),
+            2 => button(
+                text(&self.image)
+                    .size(height * 0.5)
+                    .vertical_alignment(Vertical::Center),
+            )
+            .style(theme::Button::Text)
+            .height(height)
+            .on_press(ContainerItemMsg(index))
+            .into(),
+            3 => ui::icon_button("play.png")
+                .height(height)
+                .on_press(ContainerItemMsg(index))
+                .into(),
+            4 => ui::icon_button("delete.png")
+                .height(height)
+                .on_press(ContainerItemMsg(index))
+                .into(),
+            _ => text("Unsupported").height(height).into(),
         }
-        .height(height)
-        .center_y()
     }
 }

@@ -7,8 +7,8 @@ use iced::{
 };
 
 use crate::{
-    container_item::{ContainerItem, Status},
-    iview::{IView, IViewState, ViewMessage, ViewState},
+    container_item::{ContainerItem, ContainerItemMsg, Status},
+    iview::{IView, IViewMsg, ViewMessage, ViewState},
 };
 
 #[derive(Default)]
@@ -21,7 +21,14 @@ struct State {
     view_state: ViewState,
     containers: Vec<ContainerItem>,
 }
-impl IViewState for State {
+
+#[derive(Debug)]
+enum ContainerMsg {
+    State(State),
+    Item(ContainerItemMsg),
+}
+
+impl IViewMsg for ContainerMsg {
     fn as_any(&self) -> &dyn Any {
         self
     }
@@ -39,19 +46,23 @@ where
 }
 
 impl IView for ContainerView {
-    fn view<'a>(&self) -> iced::widget::Container<'a, crate::Message, iced::Renderer> {
+    fn view(&self) -> iced::Element<ViewMessage> {
         match self.state.view_state {
-            ViewState::Uninitialized => empty_view(),
-            ViewState::Loading => empty_view(),
+            ViewState::Uninitialized => empty_view().into(),
+            ViewState::Loading => empty_view().into(),
             ViewState::Loaded => container(scrollable(iced::widget::row(
-                (0usize..3)
+                (0usize..ContainerItem::columns())
                     .map(|i| {
                         {
                             iced::widget::column(
                                 self.state
                                     .containers
                                     .iter()
-                                    .map(|item| item.get(i, 32.0).into())
+                                    .map(|item| {
+                                        item.get(i, 32.0).map(move |msg| {
+                                            ViewMessage::Loaded(Box::new(ContainerMsg::Item(msg)))
+                                        })
+                                    })
                                     .collect(),
                             )
                             .spacing(4)
@@ -62,7 +73,8 @@ impl IView for ContainerView {
             )))
             .padding(2)
             .width(Length::Fill)
-            .style(theme::Container::Box),
+            .style(theme::Container::Box)
+            .into(),
         }
     }
 
@@ -81,13 +93,22 @@ impl IView for ContainerView {
             },
             ViewMessage::Unselected => println!("NOT IMPLEMENED Unselected"),
             ViewMessage::Loaded(state) => {
-                let my_state = state
+                let msg = state
                     .as_any()
-                    .downcast_ref::<State>()
+                    .downcast_ref::<ContainerMsg>()
                     .expect("Wasn't a correct state!");
 
-                self.state.containers = my_state.containers.clone();
-                self.state.view_state = ViewState::Loaded;
+                match msg {
+                    ContainerMsg::State(s) => {
+                        self.state.containers = s.containers.clone();
+                        self.state.view_state = ViewState::Loaded;
+                    }
+                    ContainerMsg::Item(msg) =>
+                    /*TODO*/
+                    {
+                        ()
+                    }
+                }
             }
         }
         Command::none()
@@ -99,10 +120,10 @@ impl IView for ContainerView {
 }
 
 impl ContainerView {
-    async fn load() -> Box<dyn IViewState + Send> {
+    async fn load() -> Box<dyn IViewMsg + Send> {
         dbg!("load called..");
         thread::sleep(time::Duration::from_secs(1));
-        Box::new(State {
+        Box::new(ContainerMsg::State(State {
             view_state: ViewState::Loaded,
             containers: vec![
                 ContainerItem::new("12345".to_string(), Status::Running, "iotcore".to_string()),
@@ -114,6 +135,6 @@ impl ContainerView {
                 ),
                 ContainerItem::new("mono".to_string(), Status::Exited, "Ubuntu".to_string()),
             ],
-        })
+        }))
     }
 }
