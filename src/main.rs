@@ -1,5 +1,5 @@
 use container_view::ContainerView;
-use iced::{theme, widget::row, Application, Color, Command, Element, Length, Settings, Theme};
+use iced::{theme, widget::row, Application, Color, Command, Element, Settings, Theme};
 use iview::{IView, ViewMessage};
 use main_menu::{MainMenu, MainMenuItem};
 use message::{IndexedViewMessage, Message};
@@ -12,14 +12,7 @@ mod iview;
 #[path = "./views/volume_view.rs"]
 mod volume_view;
 
-#[path = "./views/controls/container_item.rs"]
-mod container_item;
-
-#[path = "./views/controls/button_chip_style.rs"]
-mod button_chip_style;
-
-#[path = "./views/controls/ui.rs"]
-mod ui;
+mod controls;
 
 mod main_menu;
 

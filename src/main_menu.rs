@@ -5,7 +5,7 @@ use iced::{
     Color, Element, Length,
 };
 
-use crate::button_chip_style::ButtonChipStyle;
+use crate::controls::button_chip_style::ButtonChipStyle;
 
 pub struct MainMenuItem {
     pub text: String,

@@ -7,7 +7,7 @@ use iced::{
 };
 
 use crate::{
-    container_item::{ContainerItem, ContainerItemMsg, Status},
+    controls::container_item::{ContainerItem, ContainerItemMsg, Status},
     iview::{IView, IViewMsg, ViewMessage, ViewState},
 };
 
@@ -84,13 +84,13 @@ impl IView for ContainerView {
                 self.state.view_state = ViewState::Loading;
                 return Command::perform(ContainerView::load(), ViewMessage::Loaded);
             }
-            ViewMessage::Selected => match self.state.view_state {
-                ViewState::Uninitialized => {
+            ViewMessage::Selected => {
+                if let ViewState::Uninitialized = self.state.view_state {
                     self.state.view_state = ViewState::Loading;
                     return Command::perform(ContainerView::load(), ViewMessage::Loaded);
                 }
-                _ => (),
-            },
+            }
+
             ViewMessage::Unselected => println!("NOT IMPLEMENED Unselected"),
             ViewMessage::Loaded(state) => {
                 let msg = state
@@ -106,7 +106,7 @@ impl IView for ContainerView {
                     ContainerMsg::Item(msg) =>
                     /*TODO*/
                     {
-                        ()
+                        println!("{}", msg.0)
                     }
                 }
             }

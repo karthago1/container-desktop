@@ -2,10 +2,9 @@ use iced::{
     alignment::Vertical,
     theme,
     widget::{button, text},
-    Length,
 };
 
-use crate::ui;
+use super::ui::*;
 
 #[derive(Debug, Clone)]
 pub struct ContainerItem {
@@ -22,15 +21,12 @@ pub enum Status {
 
 impl Status {
     pub fn is_running(&self) -> bool {
-        match *self {
-            Status::Running => true,
-            _ => false,
-        }
+        matches!(*self, Status::Running)
     }
 }
 
 #[derive(Debug, Clone)]
-pub struct ContainerItemMsg(usize);
+pub struct ContainerItemMsg(pub usize);
 
 impl ContainerItem {
     pub fn new(name: String, status: Status, image: String) -> Self {
@@ -42,11 +38,11 @@ impl ContainerItem {
     }
 
     pub fn columns() -> usize {
-        return 5;
+        5
     }
     pub fn get(&self, index: usize, height: f32) -> iced::Element<ContainerItemMsg> {
         match index {
-            0 => ui::icon_status("container.png", self.status.is_running())
+            0 => icon_status("container.png", self.status.is_running())
                 .height(height)
                 .into(),
             1 => button(
@@ -67,11 +63,11 @@ impl ContainerItem {
             .height(height)
             .on_press(ContainerItemMsg(index))
             .into(),
-            3 => ui::icon_button("play.png")
+            3 => icon_button("play.png")
                 .height(height)
                 .on_press(ContainerItemMsg(index))
                 .into(),
-            4 => ui::icon_button("delete.png")
+            4 => icon_button("delete.png")
                 .height(height)
                 .on_press(ContainerItemMsg(index))
                 .into(),
