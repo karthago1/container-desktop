@@ -7,28 +7,28 @@ use iced::{
 };
 
 use crate::{
-    controls::container_item::{ContainerItem, ContainerItemMsg, Status},
+    controls::list_item::{ContainerItemMsg, ListCell, ListItem, Status},
     iview::{IView, IViewMsg, ViewMessage, ViewState},
 };
 
 #[derive(Default)]
-pub struct ContainerView {
-    state: State,
+pub struct ContainerView<'a> {
+    state: State<'a>,
 }
 
 #[derive(Default, Debug)]
-struct State {
+struct State<'a> {
     view_state: ViewState,
-    containers: Vec<ContainerItem>,
+    containers: Vec<ListItem<'a>>,
 }
 
 #[derive(Debug)]
-enum ContainerMsg {
-    State(State),
+enum ContainerMsg<'a> {
+    State(State<'a>),
     Item(ContainerItemMsg),
 }
 
-impl IViewMsg for ContainerMsg {
+impl<'a> IViewMsg for ContainerMsg<'static> {
     fn as_any(&self) -> &dyn Any {
         self
     }
@@ -45,13 +45,13 @@ where
         .center_y()
 }
 
-impl IView for ContainerView {
+impl<'a> IView for ContainerView<'a> {
     fn view(&self) -> iced::Element<ViewMessage> {
         match self.state.view_state {
             ViewState::Uninitialized => empty_view().into(),
             ViewState::Loading => empty_view().into(),
             ViewState::Loaded => container(scrollable(iced::widget::row(
-                (0usize..ContainerItem::columns())
+                (0usize..5)
                     .map(|i| {
                         {
                             iced::widget::column(
@@ -59,7 +59,7 @@ impl IView for ContainerView {
                                     .containers
                                     .iter()
                                     .map(|item| {
-                                        item.get(i, 32.0).map(move |msg| {
+                                        item.get(i, 32.0, Status::Running).map(move |msg| {
                                             ViewMessage::Loaded(Box::new(ContainerMsg::Item(msg)))
                                         })
                                     })
@@ -119,21 +119,48 @@ impl IView for ContainerView {
     }
 }
 
-impl ContainerView {
+impl<'a> ContainerView<'a> {
     async fn load() -> Box<dyn IViewMsg + Send> {
         dbg!("load called..");
+        /*    IconStatus(&'a str),
+        TextButton(String),
+        IconButton(&'a str),
+        IconToggleButton(&'a str, &'a str), */
+        ListItem(vec![
+            ListCell::IconStatus("container.png"),
+            ListCell::TextButton("container 1"),
+            ListCell::TextButton("Ubuntu"),
+            ListCell::IconToggleButton("play.png", "stop.png"),
+            ListCell::IconButton("play.png"),
+        ]);
+
         thread::sleep(time::Duration::from_secs(1));
         Box::new(ContainerMsg::State(State {
             view_state: ViewState::Loaded,
             containers: vec![
-                ContainerItem::new("12345".to_string(), Status::Running, "iotcore".to_string()),
-                ContainerItem::new(
-                    "new Contrainer".to_string(),
-                    Status::Exited,
-                    "sha256:ea49d6ddc21b6ca2e00b002e7f254325df0ff7eb1a9eb8a9a15ad151eda39be0"
-                        .to_string(),
-                ),
-                ContainerItem::new("mono".to_string(), Status::Exited, "Ubuntu".to_string()),
+                ListItem(vec![
+                    ListCell::IconStatus("container.png"),
+                    ListCell::TextButton("container 1"),
+                    ListCell::TextButton("Ubuntu"),
+                    ListCell::IconToggleButton("play.png", "stop.png"),
+                    ListCell::IconButton("delete.png"),
+                ]),
+                ListItem(vec![
+                    ListCell::IconStatus("container.png"),
+                    ListCell::TextButton("container 2"),
+                    ListCell::TextButton("Debian"),
+                    ListCell::IconToggleButton("play.png", "stop.png"),
+                    ListCell::IconButton("delete.png"),
+                ]),
+                ListItem(vec![
+                    ListCell::IconStatus("container.png"),
+                    ListCell::TextButton("mono"),
+                    ListCell::TextButton(
+                        "sha256:ea49d6ddc21b6ca2e00b002e7f254325df0ff7eb1a9eb8a9a15ad151eda39be0",
+                    ),
+                    ListCell::IconToggleButton("play.png", "stop.png"),
+                    ListCell::IconButton("delete.png"),
+                ]),
             ],
         }))
     }
