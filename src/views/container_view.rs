@@ -120,47 +120,29 @@ impl<'a> IView for ContainerView<'a> {
 }
 
 impl<'a> ContainerView<'a> {
-    async fn load() -> Box<dyn IViewMsg + Send> {
-        dbg!("load called..");
-        /*    IconStatus(&'a str),
-        TextButton(String),
-        IconButton(&'a str),
-        IconToggleButton(&'a str, &'a str), */
+    fn container_item(name: &'static str, image: &'static str) -> ListItem<'static> {
         ListItem(vec![
             ListCell::IconStatus("container.png"),
-            ListCell::TextButton("container 1"),
-            ListCell::TextButton("Ubuntu"),
+            ListCell::TextButton(name),
+            ListCell::TextButton(image),
             ListCell::IconToggleButton("play.png", "stop.png"),
-            ListCell::IconButton("play.png"),
-        ]);
+            ListCell::IconButton("delete.png"),
+        ])
+    }
 
+    async fn load() -> Box<dyn IViewMsg + Send> {
+        dbg!("load called..");
         thread::sleep(time::Duration::from_secs(1));
         Box::new(ContainerMsg::State(State {
             view_state: ViewState::Loaded,
             containers: vec![
-                ListItem(vec![
-                    ListCell::IconStatus("container.png"),
-                    ListCell::TextButton("container 1"),
-                    ListCell::TextButton("Ubuntu"),
-                    ListCell::IconToggleButton("play.png", "stop.png"),
-                    ListCell::IconButton("delete.png"),
-                ]),
-                ListItem(vec![
-                    ListCell::IconStatus("container.png"),
-                    ListCell::TextButton("container 2"),
-                    ListCell::TextButton("Debian"),
-                    ListCell::IconToggleButton("play.png", "stop.png"),
-                    ListCell::IconButton("delete.png"),
-                ]),
-                ListItem(vec![
-                    ListCell::IconStatus("container.png"),
-                    ListCell::TextButton("mono"),
-                    ListCell::TextButton(
-                        "sha256:ea49d6ddc21b6ca2e00b002e7f254325df0ff7eb1a9eb8a9a15ad151eda39be0",
-                    ),
-                    ListCell::IconToggleButton("play.png", "stop.png"),
-                    ListCell::IconButton("delete.png"),
-                ]),
+                Self::container_item("container 1", "Ubuntu"),
+                Self::container_item("container 2", "Debian"),
+                Self::container_item(
+                    "mono",
+                    "sha256:ea49d6ddc21b6ca2e00b002e7f254325df0ff7eb1a9eb8a9a15ad151eda39be0",
+                ),
+                Self::container_item("container 22", "Alpine"),
             ],
         }))
     }
