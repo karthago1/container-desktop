@@ -1,15 +1,21 @@
 use container_view::ContainerView;
 use iced::{theme, widget::row, Application, Command, Element, Settings, Theme};
+use image_view::ImageView;
 use iview::{IView, ViewMessage};
 use main_menu::{MainMenu, MainMenuItem};
 use message::{IndexedViewMessage, Message};
 use style::colors;
 use volume_view::VolumeView;
 
-#[path = "./views/container_view.rs"]
-mod container_view;
 #[path = "./views/iview.rs"]
 mod iview;
+
+#[path = "./views/container_view.rs"]
+mod container_view;
+
+#[path = "./views/image_view.rs"]
+mod image_view;
+
 #[path = "./views/volume_view.rs"]
 mod volume_view;
 
@@ -45,7 +51,7 @@ impl Application for MainWindow {
             ]),
             views: vec![
                 Box::<ContainerView>::default(),
-                Box::<ContainerView>::default(),
+                Box::<ImageView>::default(),
                 Box::<VolumeView>::default(),
                 Box::<VolumeView>::default(),
             ],
@@ -86,7 +92,7 @@ impl Application for MainWindow {
         row(vec![
             self.menu.view(badges).map(Message::MenuMessage),
             self.views[self.menu.selected_index]
-                .view()
+            .view()
                 .map(|msg| Message::View(IndexedViewMessage::new(self.menu.selected_index, msg))),
         ])
         .into()

@@ -11,29 +11,29 @@ use crate::{
     iview::{IView, IViewMsg, ViewMessage, ViewState},
 };
 
-pub struct ContainerView {
+pub struct ImageView {
     list_view: ListView,
     view_state: ViewState,
 }
 
 #[derive(Debug)]
-enum ContainerMsg {
+enum ImageMsg {
     View(ListMsg),
 }
 
-impl IViewMsg for ContainerMsg {
+impl IViewMsg for ImageMsg {
     fn as_any(&self) -> &dyn Any {
         self
     }
 }
 
-impl Default for ContainerView {
+impl Default for ImageView {
     fn default() -> Self {
         Self {
             list_view: ListView::new(vec![
                 iced::Length::Shrink,
+                iced::Length::FillPortion(2),
                 iced::Length::Fill,
-                iced::Length::FillPortion(3),
                 iced::Length::Shrink,
                 iced::Length::Shrink,
             ]),
@@ -42,7 +42,7 @@ impl Default for ContainerView {
     }
 }
 
-impl IView for ContainerView {
+impl IView for ImageView {
     fn view(&self) -> iced::Element<ViewMessage> {
         match self.view_state {
             ViewState::Uninitialized => loading_view().into(),
@@ -50,7 +50,7 @@ impl IView for ContainerView {
             ViewState::Loaded => self
                 .list_view
                 .view()
-                .map(move |msg| ViewMessage::Loaded(Box::new(ContainerMsg::View(msg)))),
+                .map(move |msg| ViewMessage::Loaded(Box::new(ImageMsg::View(msg)))),
         }
     }
 
@@ -58,12 +58,12 @@ impl IView for ContainerView {
         match message {
             ViewMessage::Init => {
                 self.view_state = ViewState::Loading;
-                return Command::perform(ContainerView::load(), ViewMessage::Loaded);
+                return Command::perform(ImageView::load(), ViewMessage::Loaded);
             }
             ViewMessage::Selected => {
                 if let ViewState::Uninitialized = self.view_state {
                     self.view_state = ViewState::Loading;
-                    return Command::perform(ContainerView::load(), ViewMessage::Loaded);
+                    return Command::perform(ImageView::load(), ViewMessage::Loaded);
                 }
             }
 
@@ -71,11 +71,11 @@ impl IView for ContainerView {
             ViewMessage::Loaded(state) => {
                 let msg = state
                     .as_any()
-                    .downcast_ref::<ContainerMsg>()
+                    .downcast_ref::<ImageMsg>()
                     .expect("Wasn't a correct state!");
 
                 match msg {
-                    ContainerMsg::View(msg) => {
+                    ImageMsg::View(msg) => {
                         match msg {
                             ListMsg::Item(msg) =>
                             /*TODO*/
@@ -99,10 +99,10 @@ impl IView for ContainerView {
     }
 }
 
-impl ContainerView {
-    fn container_item(name: &'static str, image: &'static str) -> ListItem {
+impl ImageView {
+    fn list_item(name: &'static str, image: &'static str) -> ListItem {
         ListItem(vec![
-            ListCell::IconStatus("container.png"),
+            ListCell::IconStatus("image.png"),
             ListCell::TextButton(name),
             ListCell::TextButton(image),
             ListCell::IconToggleButton("play.png", "stop.png"),
@@ -113,14 +113,14 @@ impl ContainerView {
     async fn load() -> Box<dyn IViewMsg + Send> {
         dbg!("load called..");
         thread::sleep(time::Duration::from_secs(1));
-        Box::new(ContainerMsg::View(ListMsg::NewItems(vec![
-            Self::container_item("container 1", "Ubuntu"),
-            Self::container_item("container 2", "Debian"),
-            Self::container_item(
-                "mono",
+        Box::new(ImageMsg::View(ListMsg::NewItems(vec![
+            Self::list_item("Ubuntu", "907.13 MB"),
+            Self::list_item("Debian", "713.15 MB"),
+            Self::list_item(
                 "sha256:ea49d6ddc21b6ca2e00b002e7f254325df0ff7eb1a9eb8a9a15ad151eda39be0",
+                "713.15 MB",
             ),
-            Self::container_item("container 22", "Alpine"),
+            Self::list_item("Alpine", "13.15 MB"),
         ])))
     }
 }
