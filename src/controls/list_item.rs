@@ -24,7 +24,7 @@ impl Status {
 }
 
 #[derive(Debug, Clone)]
-pub struct ContainerItemMsg(pub usize);
+pub struct ListItemMsg(pub usize);
 
 #[derive(Debug, Clone)]
 pub enum ListCell {
@@ -45,7 +45,7 @@ impl ListItem {
         width: iced::Length,
         height: f32,
         status: Status,
-    ) -> iced::Element<ContainerItemMsg> {
+    ) -> iced::Element<ListItemMsg> {
         let e = &self.0[index];
 
         match e {
@@ -62,13 +62,13 @@ impl ListItem {
             .style(theme::Button::Text)
             .width(width)
             .height(height)
-            .on_press(ContainerItemMsg(index))
+            .on_press(ListItemMsg(index))
             .into(),
 
             ListCell::IconButton(icon) => icon_button(icon)
                 .width(width)
                 .height(height)
-                .on_press(ContainerItemMsg(index))
+                .on_press(ListItemMsg(index))
                 .into(),
 
             ListCell::IconToggleButton(active, disabled) => icon_button(if status.is_running() {
@@ -78,7 +78,7 @@ impl ListItem {
             })
             .width(width)
             .height(height)
-            .on_press(ContainerItemMsg(index))
+            .on_press(ListItemMsg(index))
             .into(),
         }
     }
