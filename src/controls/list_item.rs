@@ -4,6 +4,8 @@ use iced::{
     widget::{button, text},
 };
 
+use crate::style;
+
 use super::ui::*;
 
 #[derive(Debug, Clone)]
@@ -54,7 +56,7 @@ impl ListItem {
 
             ListCell::TextButton(title) => button(
                 text(&title)
-                    .size(height * 0.5)
+                    .size(style::FONT_SIZE_SMALL)
                     .vertical_alignment(Vertical::Center),
             )
             .style(theme::Button::Text)
