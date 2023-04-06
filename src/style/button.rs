@@ -3,27 +3,45 @@ use iced::{
     Background, Color, Theme, Vector,
 };
 
-pub struct ButtonChipStyle {
+use super::colors;
+
+pub struct Button {
     radius: f32,
+    background: Option<Background>,
+    text_color: Color,
 }
 
-impl ButtonChipStyle {
-    pub fn new(radius: f32) -> Self {
-        Self { radius }
+impl Button {
+    pub fn new(radius: f32, background: Option<Background>, text_color: Color) -> Self {
+        Self {
+            radius,
+            background,
+            text_color,
+        }
     }
 }
 
-impl button::StyleSheet for ButtonChipStyle {
+impl Default for Button {
+    fn default() -> Self {
+        Self {
+            radius: Default::default(),
+            background: None,
+            text_color: *colors::PRIMARY_TEXT,
+        }
+    }
+}
+
+impl button::StyleSheet for Button {
     type Style = Theme;
 
-    fn active(&self, style: &Self::Style) -> Appearance {
+    fn active(&self, _style: &Self::Style) -> Appearance {
         Appearance {
             shadow_offset: Vector::default(),
-            background: Some(Background::Color(style.palette().success)),
+            background: self.background,
             border_radius: self.radius,
             border_width: 0.0,
             border_color: Color::TRANSPARENT,
-            text_color: Color::BLACK,
+            text_color: self.text_color,
         }
     }
 
@@ -33,6 +51,8 @@ impl button::StyleSheet for ButtonChipStyle {
 
         Appearance {
             shadow_offset: active.shadow_offset + Vector::new(0.0, 1.0),
+            border_width: 2.,
+            border_color: *colors::ACCENT,
             ..active
         }
     }
@@ -41,12 +61,9 @@ impl button::StyleSheet for ButtonChipStyle {
     fn pressed(&self, style: &Self::Style) -> Appearance {
         Appearance {
             shadow_offset: Vector::default(),
+            background: Some(Background::Color(*colors::ACCENT)),
+            text_color: *colors::ACCENT_TEXT,
             ..self.active(style)
         }
-    }
-
-    /// Produces the disabled [`Appearance`] of a button.
-    fn disabled(&self, style: &Self::Style) -> Appearance {
-        self.active(style)
     }
 }

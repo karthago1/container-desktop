@@ -1,8 +1,9 @@
 use container_view::ContainerView;
-use iced::{theme, widget::row, Application, Color, Command, Element, Settings, Theme};
+use iced::{theme, widget::row, Application, Command, Element, Settings, Theme};
 use iview::{IView, ViewMessage};
 use main_menu::{MainMenu, MainMenuItem};
 use message::{IndexedViewMessage, Message};
+use style::colors;
 use volume_view::VolumeView;
 
 #[path = "./views/container_view.rs"]
@@ -13,6 +14,7 @@ mod iview;
 mod volume_view;
 
 mod controls;
+mod style;
 
 mod main_menu;
 
@@ -92,11 +94,11 @@ impl Application for MainWindow {
 
     fn theme(&self) -> Theme {
         Theme::custom(theme::Palette {
-            background: Color::from_rgb(0x1b as f32 / 255., 0x1b as f32 / 255., 0x1b as f32 / 255.),
-            text: Color::WHITE,
-            primary: Color::from_rgb(0x42 as f32 / 255., 0x42 as f32 / 255., 0x42 as f32 / 255.),
-            success: Color::from_rgb(1.0, 0x6f as f32 / 255., 0.),
-            danger: Color::from_rgb(0xef as f32 / 255., 0x53 as f32 / 255., 0x50 as f32 / 255.),
+            background: *colors::PRIMARY_DARK,
+            text: *colors::PRIMARY_TEXT,
+            primary: *colors::PRIMARY,
+            success: *colors::ACCENT,
+            danger: *colors::ERROR,
         })
     }
 }

@@ -7,7 +7,7 @@ use iced::{
 use super::ui::*;
 
 #[derive(Debug, Clone)]
-pub struct ListItem<'a>(pub Vec<ListCell<'a>>);
+pub struct ListItem(pub Vec<ListCell>);
 
 #[derive(Debug, Clone)]
 pub enum Status {
@@ -25,14 +25,14 @@ impl Status {
 pub struct ContainerItemMsg(pub usize);
 
 #[derive(Debug, Clone)]
-pub enum ListCell<'a> {
-    IconStatus(&'a str),
-    TextButton(&'a str),
-    IconButton(&'a str),
-    IconToggleButton(&'a str, &'a str),
+pub enum ListCell {
+    IconStatus(&'static str),
+    TextButton(&'static str),
+    IconButton(&'static str),
+    IconToggleButton(&'static str, &'static str),
 }
 
-impl<'a> ListItem<'a> {
+impl ListItem {
     pub fn columns(&self) -> usize {
         self.0.len()
     }
@@ -40,13 +40,15 @@ impl<'a> ListItem<'a> {
     pub fn get(
         &self,
         index: usize,
+        width: iced::Length,
         height: f32,
         status: Status,
     ) -> iced::Element<ContainerItemMsg> {
         let e = &self.0[index];
 
         match e {
-            ListCell::IconStatus(icon) => icon_status(&icon, status.is_running())
+            ListCell::IconStatus(icon) => icon_status(icon, status.is_running())
+                .width(width)
                 .height(height)
                 .into(),
 
@@ -56,19 +58,26 @@ impl<'a> ListItem<'a> {
                     .vertical_alignment(Vertical::Center),
             )
             .style(theme::Button::Text)
+            .width(width)
             .height(height)
             .on_press(ContainerItemMsg(index))
             .into(),
 
-            ListCell::IconButton(icon) => icon_button(&icon)
+            ListCell::IconButton(icon) => icon_button(icon)
+                .width(width)
                 .height(height)
                 .on_press(ContainerItemMsg(index))
                 .into(),
 
-            ListCell::IconToggleButton(active, disabled) => icon_button(&active)
-                .height(height)
-                .on_press(ContainerItemMsg(index))
-                .into(),
+            ListCell::IconToggleButton(active, disabled) => icon_button(if status.is_running() {
+                disabled
+            } else {
+                active
+            })
+            .width(width)
+            .height(height)
+            .on_press(ContainerItemMsg(index))
+            .into(),
         }
     }
 }

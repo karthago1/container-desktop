@@ -9,26 +9,27 @@ use iced::{
 use crate::{
     controls::list_item::{ContainerItemMsg, ListCell, ListItem, Status},
     iview::{IView, IViewMsg, ViewMessage, ViewState},
+    style,
 };
 
-#[derive(Default)]
-pub struct ContainerView<'a> {
-    state: State<'a>,
+pub struct ContainerView {
+    state: State,
+    columns_width: Vec<iced::Length>,
 }
 
 #[derive(Default, Debug)]
-struct State<'a> {
+struct State {
     view_state: ViewState,
-    containers: Vec<ListItem<'a>>,
+    containers: Vec<ListItem>,
 }
 
 #[derive(Debug)]
-enum ContainerMsg<'a> {
-    State(State<'a>),
+enum ContainerMsg {
+    State(State),
     Item(ContainerItemMsg),
 }
 
-impl<'a> IViewMsg for ContainerMsg<'static> {
+impl IViewMsg for ContainerMsg {
     fn as_any(&self) -> &dyn Any {
         self
     }
@@ -45,8 +46,23 @@ where
         .center_y()
 }
 
-impl<'a> IView for ContainerView<'a> {
-    fn view(&self) -> iced::Element<ViewMessage> {
+impl Default for ContainerView {
+    fn default() -> Self {
+        Self {
+            columns_width: vec![
+                iced::Length::Shrink,
+                iced::Length::Fill,
+                iced::Length::FillPortion(3),
+                iced::Length::Shrink,
+                iced::Length::Shrink,
+            ],
+            state: State::default(),
+        }
+    }
+}
+
+impl IView for ContainerView {
+    /*fn view2(&self) -> iced::Element<ViewMessage> {
         match self.state.view_state {
             ViewState::Uninitialized => empty_view().into(),
             ViewState::Loading => empty_view().into(),
@@ -73,6 +89,55 @@ impl<'a> IView for ContainerView<'a> {
             )))
             .padding(2)
             .width(Length::Fill)
+            .style(theme::Container::Box)
+            .into(),
+        }
+    }*/
+
+    fn view(&self) -> iced::Element<ViewMessage> {
+        match self.state.view_state {
+            ViewState::Uninitialized => empty_view().into(),
+            ViewState::Loading => empty_view().into(),
+            ViewState::Loaded => container(scrollable(
+                iced::widget::column(
+                    self.state
+                        .containers
+                        .iter()
+                        .map(|item| {
+                            {
+                                container(
+                                    iced::widget::row(
+                                        (0..5)
+                                            .map(|i| {
+                                                item.get(
+                                                    i,
+                                                    self.columns_width[i],
+                                                    40.0,
+                                                    Status::Running,
+                                                )
+                                                .map(move |msg| {
+                                                    ViewMessage::Loaded(Box::new(
+                                                        ContainerMsg::Item(msg),
+                                                    ))
+                                                })
+                                            })
+                                            .collect(),
+                                    )
+                                    .spacing(4),
+                                )
+                                .style(theme::Container::Custom(
+                                    Box::<style::ContainerBackground>::default(),
+                                ))
+                            }
+                            .into()
+                        })
+                        .collect(),
+                )
+                .spacing(4),
+            ))
+            .padding(2)
+            .width(Length::Fill)
+            .height(Length::Fill)
             .style(theme::Container::Box)
             .into(),
         }
@@ -119,8 +184,8 @@ impl<'a> IView for ContainerView<'a> {
     }
 }
 
-impl<'a> ContainerView<'a> {
-    fn container_item(name: &'static str, image: &'static str) -> ListItem<'static> {
+impl ContainerView {
+    fn container_item(name: &'static str, image: &'static str) -> ListItem {
         ListItem(vec![
             ListCell::IconStatus("container.png"),
             ListCell::TextButton(name),

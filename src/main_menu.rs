@@ -2,10 +2,10 @@ use iced::{
     alignment::{Horizontal, Vertical},
     theme,
     widget::{button, column, container, image, row, text},
-    Color, Element, Length,
+    Element, Length,
 };
 
-use crate::controls::button_chip_style::ButtonChipStyle;
+use crate::style;
 
 pub struct MainMenuItem {
     pub text: String,
@@ -76,9 +76,9 @@ impl MainMenu {
                                 text(b.to_string())
                                     .size(14)
                                     .horizontal_alignment(Horizontal::Center)
-                                    .style(Color::WHITE),
+                                    .style(*style::colors::PRIMARY_TEXT),
                             )
-                            .style(theme::Button::Custom(Box::new(ButtonChipStyle::new(10.)))),
+                            .style(theme::Button::Custom(Box::new(style::ButtonChip::new(10.)))),
                         );
                     }
 
