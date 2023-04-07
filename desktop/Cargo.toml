@@ -1,0 +1,12 @@
+[package]
+name = "container-desktop"
+version = "0.1.0"
+edition = "2021"
+authors = ["Hichem, Ben Fekih <hichem.f@live.de>"]
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+async-std = "1.12.0"
+iced = { version = "0.8.0", features = ["image"] }
+iced_native = "0.9.1"
+once_cell = "1.17.1"
