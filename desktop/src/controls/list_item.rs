@@ -29,16 +29,12 @@ pub struct ListItemMsg(pub usize);
 #[derive(Debug, Clone)]
 pub enum ListCell {
     IconStatus(&'static str),
-    TextButton(&'static str),
+    TextButton(String),
     IconButton(&'static str),
     IconToggleButton(&'static str, &'static str),
 }
 
 impl ListItem {
-    pub fn columns(&self) -> usize {
-        self.0.len()
-    }
-
     pub fn get(
         &self,
         index: usize,

@@ -4,6 +4,12 @@ pub struct Image {
     pub size: usize,
 }
 
-pub trait ImageProvider {
-    fn list() -> Vec<Image>;
+impl Image {
+    pub fn new(id: String, name: String, size: usize) -> Self {
+        Self { id, name, size }
+    }
+}
+
+pub trait ImageProvider: Send {
+    fn list(&self) -> Vec<Image>;
 }

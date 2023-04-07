@@ -100,7 +100,7 @@ impl IView for ContainerView {
 }
 
 impl ContainerView {
-    fn container_item(name: &'static str, image: &'static str) -> ListItem {
+    fn container_item(name: String, image: String) -> ListItem {
         ListItem(vec![
             ListCell::IconStatus("container.png"),
             ListCell::TextButton(name),
@@ -114,13 +114,13 @@ impl ContainerView {
         dbg!("load called..");
         thread::sleep(time::Duration::from_secs(1));
         Box::new(ContainerMsg::View(ListMsg::NewItems(vec![
-            Self::container_item("container 1", "Ubuntu"),
-            Self::container_item("container 2", "Debian"),
+            Self::container_item("container 1".to_string(), "Ubuntu".to_string()),
+            Self::container_item("container 2".to_string(), "Debian".to_string()),
             Self::container_item(
-                "mono",
-                "sha256:ea49d6ddc21b6ca2e00b002e7f254325df0ff7eb1a9eb8a9a15ad151eda39be0",
+                "mono".to_string(),
+                "sha256:ea49d6ddc21b6ca2e00b002e7f254325df0ff7eb1a9eb8a9a15ad151eda39be0".to_string(),
             ),
-            Self::container_item("container 22", "Alpine"),
+            Self::container_item("container 22".to_string(), "Alpine".to_string()),
         ])))
     }
 }

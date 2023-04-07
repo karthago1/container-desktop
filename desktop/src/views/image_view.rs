@@ -1,4 +1,9 @@
-use std::{any::Any, thread, time, vec};
+use core::CorePlugin;
+use std::{
+    any::Any,
+    sync::{Arc, Mutex},
+    vec,
+};
 
 use iced::Command;
 
@@ -12,6 +17,7 @@ use crate::{
 };
 
 pub struct ImageView {
+    provider: Arc<Mutex<Box<CorePlugin>>>,
     list_view: ListView,
     view_state: ViewState,
 }
@@ -24,21 +30,6 @@ enum ImageMsg {
 impl IViewMsg for ImageMsg {
     fn as_any(&self) -> &dyn Any {
         self
-    }
-}
-
-impl Default for ImageView {
-    fn default() -> Self {
-        Self {
-            list_view: ListView::new(vec![
-                iced::Length::Shrink,
-                iced::Length::FillPortion(2),
-                iced::Length::Fill,
-                iced::Length::Shrink,
-                iced::Length::Shrink,
-            ]),
-            view_state: ViewState::default(),
-        }
     }
 }
 
@@ -58,12 +49,18 @@ impl IView for ImageView {
         match message {
             ViewMessage::Init => {
                 self.view_state = ViewState::Loading;
-                return Command::perform(ImageView::load(), ViewMessage::Loaded);
+                return Command::perform(
+                    ImageView::load(self.provider.clone()),
+                    ViewMessage::Loaded,
+                );
             }
             ViewMessage::Selected => {
                 if let ViewState::Uninitialized = self.view_state {
                     self.view_state = ViewState::Loading;
-                    return Command::perform(ImageView::load(), ViewMessage::Loaded);
+                    return Command::perform(
+                        ImageView::load(self.provider.clone()),
+                        ViewMessage::Loaded,
+                    );
                 }
             }
 
@@ -100,7 +97,21 @@ impl IView for ImageView {
 }
 
 impl ImageView {
-    fn list_item(name: &'static str, image: &'static str) -> ListItem {
+    pub fn new(provider: Arc<Mutex<Box<CorePlugin>>>) -> Self {
+        Self {
+            provider,
+            list_view: ListView::new(vec![
+                iced::Length::Shrink,
+                iced::Length::FillPortion(2),
+                iced::Length::Fill,
+                iced::Length::Shrink,
+                iced::Length::Shrink,
+            ]),
+            view_state: ViewState::default(),
+        }
+    }
+
+    fn list_item(name: String, image: String) -> ListItem {
         ListItem(vec![
             ListCell::IconStatus("image.png"),
             ListCell::TextButton(name),
@@ -110,17 +121,26 @@ impl ImageView {
         ])
     }
 
-    async fn load() -> Box<dyn IViewMsg + Send> {
-        dbg!("load called..");
-        thread::sleep(time::Duration::from_secs(1));
-        Box::new(ImageMsg::View(ListMsg::NewItems(vec![
-            Self::list_item("Ubuntu", "907.13 MB"),
-            Self::list_item("Debian", "713.15 MB"),
-            Self::list_item(
-                "sha256:ea49d6ddc21b6ca2e00b002e7f254325df0ff7eb1a9eb8a9a15ad151eda39be0",
-                "713.15 MB",
-            ),
-            Self::list_item("Alpine", "13.15 MB"),
-        ])))
+    async fn load(provider: Arc<Mutex<Box<CorePlugin>>>) -> Box<dyn IViewMsg + Send> {
+        let list = {
+            let lock = provider.lock().unwrap();
+            lock.image_provider.list()
+        };
+
+        let result: Vec<ListItem> = list
+            .into_iter()
+            .map(|img| {
+                Self::list_item(
+                    if img.name.is_empty() {
+                        img.id
+                    } else {
+                        img.name
+                    },
+                    format!("{} MB", img.size as f32 / 1024. / 1024.),
+                )
+            })
+            .collect();
+
+        Box::new(ImageMsg::View(ListMsg::NewItems(result)))
     }
 }

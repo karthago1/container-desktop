@@ -420,8 +420,10 @@ name = "container-desktop"
 version = "0.1.0"
 dependencies = [
  "async-std",
+ "core",
  "iced",
  "iced_native",
+ "libloading",
  "once_cell",
 ]
 
