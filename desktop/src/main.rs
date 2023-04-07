@@ -1,5 +1,9 @@
 use core::CorePlugin;
-use std::sync::{Arc, Mutex};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+    sync::{Arc, Mutex},
+};
 
 use container_view::ContainerView;
 use iced::{theme, widget::row, Application, Command, Element, Settings, Theme};
@@ -42,6 +46,20 @@ struct MainWindow {
     _libs: Vec<Library>,
 }
 
+fn get_plugin(dir: &Path) -> PathBuf {
+    fs::read_dir(dir)
+        .unwrap()
+        .find(|f| match f {
+            Ok(f) => {
+                f.file_type().unwrap().is_file()
+                    && f.file_name().to_str().unwrap().ends_with("_client.so")
+            }
+            Err(_) => false,
+        })
+        .map(|f| f.unwrap().path())
+        .unwrap()
+}
+
 impl Application for MainWindow {
     type Message = Message;
     type Theme = Theme;
@@ -49,15 +67,15 @@ impl Application for MainWindow {
     type Flags = ();
 
     fn new(_flags: ()) -> (MainWindow, Command<Message>) {
-        /*let lib_path = std::env::current_exe().unwrap().parent().unwrap();
-        lib_path.
-         {
-            Ok(p) => p.parent().unwrap(),
-            Err(e) => Path::new("./"),
-        };*/
+        let exe = std::env::current_exe().unwrap();
+        let exe_dir = exe.parent().unwrap();
+
+        println!("scanning {:?}", exe_dir);
+        let lib_path = get_plugin(exe_dir);
+
         let mut libs = Vec::<Library>::new();
         let plugin = unsafe {
-            let lib = libloading::Library::new("libsimulator.so").unwrap();
+            let lib = libloading::Library::new(lib_path).unwrap();
 
             let res = {
                 let plugin_entry_fn: libloading::Symbol<unsafe extern "C" fn() -> CorePlugin> =
