@@ -1,5 +1,5 @@
 [package]
-name = "core"
+name = "container_core"
 version = "0.1.0"
 edition = "2021"
 authors = ["Hichem, Ben Fekih <hichem.f@live.de>"]
@@ -10,3 +10,4 @@ crate-type = ["dylib", "rlib"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+async-trait = "0.1.68"

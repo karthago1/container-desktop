@@ -1,3 +1,7 @@
+use std::fmt::Debug;
+
+use async_trait::async_trait;
+
 pub struct Image {
     pub id: String,
     pub name: String,
@@ -10,6 +14,7 @@ impl Image {
     }
 }
 
-pub trait ImageProvider: Send {
-    fn list(&self) -> Vec<Image>;
+#[async_trait]
+pub trait ImageProvider: Send + Sync + Debug {
+    async fn list(&self) -> Option<Vec<Image>>;
 }
