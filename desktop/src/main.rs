@@ -54,7 +54,7 @@ impl Application for MainWindow {
             ]),
             views: vec![
                 Box::<ContainerView>::default(),
-                Box::new(ImageView::default()),
+                Box::<ImageView>::default(),
                 Box::<VolumeView>::default(),
                 Box::<VolumeView>::default(),
             ],

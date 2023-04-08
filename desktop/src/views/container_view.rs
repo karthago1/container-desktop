@@ -1,4 +1,4 @@
-use std::{any::Any, thread, time, vec};
+use std::{any::Any, vec};
 
 use container_core::container::Container;
 use iced::Command;
@@ -112,16 +112,6 @@ impl IView for ContainerView {
 }
 
 impl ContainerView {
-    fn container_item(name: String, image: String) -> ListItem {
-        ListItem(vec![
-            ListCell::IconStatus("container.png"),
-            ListCell::TextButton(name),
-            ListCell::TextButton(image),
-            ListCell::IconToggleButton("play.png", "stop.png"),
-            ListCell::IconButton("delete.png"),
-        ])
-    }
-
     fn init(&mut self) -> Command<ViewMessage> {
         self.view_state = ViewState::Loading;
         Command::perform(
