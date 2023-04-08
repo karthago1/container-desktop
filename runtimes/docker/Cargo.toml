@@ -1,0 +1,17 @@
+[package]
+name = "docker-client"
+version = "0.1.0"
+edition = "2021"
+authors = ["Hichem, Ben Fekih <hichem.f@live.de>"]
+
+[lib]
+crate-type = ["dylib"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+async-trait = "0.1.68"
+bollard = "0.14.0"
+container_core = { version = "0.1.0", path = "../../container_core" }
+futures-util = "0.3.28"
+tokio = { version = "1.27.0", features = ["full"] }

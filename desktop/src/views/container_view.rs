@@ -67,6 +67,7 @@ impl IView for ContainerView {
                 }
             }
 
+            ViewMessage::Error => println!("NOT IMPLEMENED Error"),
             ViewMessage::Unselected => println!("NOT IMPLEMENED Unselected"),
             ViewMessage::Loaded(state) => {
                 let msg = state
@@ -118,7 +119,8 @@ impl ContainerView {
             Self::container_item("container 2".to_string(), "Debian".to_string()),
             Self::container_item(
                 "mono".to_string(),
-                "sha256:ea49d6ddc21b6ca2e00b002e7f254325df0ff7eb1a9eb8a9a15ad151eda39be0".to_string(),
+                "sha256:ea49d6ddc21b6ca2e00b002e7f254325df0ff7eb1a9eb8a9a15ad151eda39be0"
+                    .to_string(),
             ),
             Self::container_item("container 22".to_string(), "Alpine".to_string()),
         ])))

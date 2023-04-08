@@ -8,6 +8,7 @@ pub enum ViewMessage {
     Loaded(Box<dyn IViewMsg + Send>),
     Selected,
     Unselected,
+    Error,
 }
 
 #[derive(Default, Debug)]

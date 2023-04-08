@@ -1,4 +1,3 @@
-
 use iced::{
     widget::{container, text},
     Command,
@@ -20,6 +19,7 @@ impl IView for VolumeView {
             ViewMessage::Init => println!("NOT IMPLEMENED Init"),
             ViewMessage::Selected => println!("NOT IMPLEMENED Selected"),
             ViewMessage::Unselected => println!("NOT IMPLEMENED Unselected"),
+            ViewMessage::Error => println!("NOT IMPLEMENED Error"),
             ViewMessage::Loaded(_state) => {
                 println!("NOT IMPLEMENED Loaded")
                 //self.state = *state as State
@@ -29,6 +29,6 @@ impl IView for VolumeView {
     }
 
     fn get_badge_number(&self) -> Option<i32> {
-            None
+        None
     }
 }

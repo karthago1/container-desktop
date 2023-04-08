@@ -1,7 +1,8 @@
 [workspace]
 members = [
     "desktop",
-    "core",
+    "container_core",
     "runtimes/simulator",
+    "runtimes/docker",
 ]
 resolver = "2"

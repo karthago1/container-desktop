@@ -1,16 +1,19 @@
-use core::{
+use container_core::{
     image::{Image, ImageProvider},
     CorePlugin,
 };
-use std::{thread, time};
+use std::{future, thread, time};
 
-#[derive(Default)]
+use async_trait::async_trait;
+
+#[derive(Default, Debug)]
 pub struct ImageSimulation;
 
+#[async_trait]
 impl ImageProvider for ImageSimulation {
-    fn list(&self) -> Vec<Image> {
+    async fn list(&self) -> Option<Vec<Image>> {
         thread::sleep(time::Duration::from_secs(1));
-        vec![
+        future::ready(Some(vec![
             Image::new(
                 "sha256:ea49d6ddc21b6ca2e00b002e7f254325df0ff7eb1a9eb8a9a15ad151eda39be0"
                     .to_string(),
@@ -41,7 +44,8 @@ impl ImageProvider for ImageSimulation {
                 "Alpine-lts".to_string(),
                 61 * 1024 * 1024,
             ),
-        ]
+        ]))
+        .await
     }
 }
 

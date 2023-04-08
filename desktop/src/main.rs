@@ -1,15 +1,9 @@
-use core::CorePlugin;
-use std::{
-    fs,
-    path::{Path, PathBuf},
-    sync::{Arc, Mutex},
-};
+use provider::Provider;
 
 use container_view::ContainerView;
 use iced::{theme, widget::row, Application, Command, Element, Settings, Theme};
 use image_view::ImageView;
 use iview::{IView, ViewMessage};
-use libloading::Library;
 use main_menu::{MainMenu, MainMenuItem};
 use message::{IndexedViewMessage, Message};
 use style::colors;
@@ -28,13 +22,10 @@ mod image_view;
 mod volume_view;
 
 mod controls;
-mod style;
-
 mod main_menu;
-
 mod message;
-
-static PLUGIN_ENTRY_FUNCTION: &[u8] = b"initialize\0";
+mod provider;
+mod style;
 
 fn main() -> iced::Result {
     MainWindow::run(Settings::default())
@@ -43,21 +34,6 @@ fn main() -> iced::Result {
 struct MainWindow {
     menu: MainMenu,
     views: Vec<Box<dyn IView>>,
-    _libs: Vec<Library>,
-}
-
-fn get_plugin(dir: &Path) -> PathBuf {
-    fs::read_dir(dir)
-        .unwrap()
-        .find(|f| match f {
-            Ok(f) => {
-                f.file_type().unwrap().is_file()
-                    && f.file_name().to_str().unwrap().ends_with("_client.so")
-            }
-            Err(_) => false,
-        })
-        .map(|f| f.unwrap().path())
-        .unwrap()
 }
 
 impl Application for MainWindow {
@@ -67,26 +43,7 @@ impl Application for MainWindow {
     type Flags = ();
 
     fn new(_flags: ()) -> (MainWindow, Command<Message>) {
-        let exe = std::env::current_exe().unwrap();
-        let exe_dir = exe.parent().unwrap();
-
-        println!("scanning {:?}", exe_dir);
-        let lib_path = get_plugin(exe_dir);
-
-        let mut libs = Vec::<Library>::new();
-        let plugin = unsafe {
-            let lib = libloading::Library::new(lib_path).unwrap();
-
-            let res = {
-                let plugin_entry_fn: libloading::Symbol<unsafe extern "C" fn() -> CorePlugin> =
-                    lib.get(PLUGIN_ENTRY_FUNCTION).unwrap();
-                plugin_entry_fn()
-            };
-
-            libs.push(lib);
-
-            Arc::new(Mutex::new(Box::new(res)))
-        };
+        Provider::initialize();
 
         let mut w = MainWindow {
             menu: MainMenu::new(vec![
@@ -97,11 +54,10 @@ impl Application for MainWindow {
             ]),
             views: vec![
                 Box::<ContainerView>::default(),
-                Box::new(ImageView::new(plugin)),
+                Box::new(ImageView::default()),
                 Box::<VolumeView>::default(),
                 Box::<VolumeView>::default(),
             ],
-            _libs: libs,
         };
 
         let cmd = w
