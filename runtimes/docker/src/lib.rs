@@ -38,7 +38,10 @@ impl ImageProvider for DockerClient {
                 list.into_iter()
                     //.inspect(|e| println!("{:?}", e))
                     .map(|e| {
-                        let name = e.repo_tags.into_iter().collect();
+                        let mut name = e.repo_tags.into_iter().collect();
+                        if name == "<none>:<none>" {
+                            name = e.id.clone();
+                        }
                         Image::new(e.id, name, e.size as usize)
                     })
                     .collect(),
@@ -63,7 +66,7 @@ impl ContainerProvider for DockerClient {
         match list {
             Ok(list) => Some(
                 list.into_iter()
-                    .inspect(|e| println!("{:?}", e))
+                    //.inspect(|e| println!("{:?}", e))
                     .map(|e| {
                         let image = if let Some(img) = e.image {
                             img
