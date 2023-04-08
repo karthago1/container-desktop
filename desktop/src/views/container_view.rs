@@ -29,12 +29,12 @@ impl IViewMsg for ContainerMsg {
     }
 }
 
-fn list_item(name: String, image: String) -> ListItem {
+fn list_item(name: String, image: String, status: bool) -> ListItem {
     ListItem(vec![
-        ListCell::IconStatus("image.png"),
+        ListCell::IconStatus("container.png", status),
         ListCell::TextButton(name),
         ListCell::TextButton(image),
-        ListCell::IconToggleButton("play.png", "stop.png"),
+        ListCell::IconToggleButton("play.png", "stop.png", status),
         ListCell::IconButton("delete.png"),
     ])
 }
@@ -42,7 +42,13 @@ fn list_item(name: String, image: String) -> ListItem {
 fn map_container(list: Vec<Container>) -> Box<dyn IViewMsg + Send> {
     let result = list
         .into_iter()
-        .map(|c| list_item(if c.name.is_empty() { c.id } else { c.name }, c.image))
+        .map(|c| {
+            list_item(
+                if c.name.is_empty() { c.id } else { c.name },
+                c.image,
+                c.running,
+            )
+        })
         .collect::<Vec<ListItem>>();
     Box::new(ContainerMsg::View(ListMsg::NewItems(result))) as Box<dyn IViewMsg + Send>
 }

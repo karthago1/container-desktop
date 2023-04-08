@@ -28,12 +28,11 @@ impl IViewMsg for ImageMsg {
     }
 }
 
-fn list_item(name: String, image: String) -> ListItem {
+fn list_item(name: String, image: String, status: bool) -> ListItem {
     ListItem(vec![
-        ListCell::IconStatus("image.png"),
+        ListCell::IconStatus("image.png", status),
         ListCell::TextButton(name),
         ListCell::TextButton(image),
-        ListCell::IconToggleButton("play.png", "stop.png"),
         ListCell::IconButton("delete.png"),
     ])
 }
@@ -49,6 +48,7 @@ fn map_image(imgs: Vec<Image>) -> Box<dyn IViewMsg + Send> {
                     img.name
                 },
                 format!("{} MB", img.size as f32 / 1024. / 1024.),
+                false,
             )
         })
         .collect::<Vec<ListItem>>();
@@ -62,7 +62,6 @@ impl Default for ImageView {
                 iced::Length::Shrink,
                 iced::Length::FillPortion(2),
                 iced::Length::Fill,
-                iced::Length::Shrink,
                 iced::Length::Shrink,
             ]),
             view_state: ViewState::default(),

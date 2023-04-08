@@ -51,6 +51,13 @@ impl ImageProvider for DockerClient {
     }
 }
 
+fn is_container_running(state: Option<String>) -> bool {
+    match state {
+        Some(state) => state == "running",
+        None => false,
+    }
+}
+
 #[async_trait]
 impl ContainerProvider for DockerClient {
     async fn list_containers(&self) -> Option<Vec<Container>> {
@@ -77,11 +84,13 @@ impl ContainerProvider for DockerClient {
                         };
                         let id = e.id.unwrap();
                         let name = if let Some(names) = e.names {
-                            names.into_iter().collect()
+                            let mut n: String = names.into_iter().collect();
+                            n.remove(0);
+                            n
                         } else {
-                            "No Name".to_string()
+                            "".to_string()
                         };
-                        let running = true;
+                        let running = is_container_running(e.state);
                         Container::new(id, name, image, running)
                     })
                     .collect(),

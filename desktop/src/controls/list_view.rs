@@ -5,7 +5,7 @@ use iced::{
 };
 
 use crate::{
-    controls::list_item::{ListItem, ListItemMsg, Status},
+    controls::list_item::{ListItem, ListItemMsg},
     style,
 };
 
@@ -77,13 +77,8 @@ impl ListView {
                                 iced::widget::row(
                                     (0..self.columns_width.len())
                                         .map(|i| {
-                                            item.get(
-                                                i,
-                                                self.columns_width[i],
-                                                40.0,
-                                                Status::Running,
-                                            )
-                                            .map(ListMsg::Item)
+                                            item.get(i, self.columns_width[i], 40.0)
+                                                .map(ListMsg::Item)
                                         })
                                         .collect(),
                                 )
@@ -99,7 +94,7 @@ impl ListView {
             )
             .spacing(4),
         ))
-        .padding(2)
+        .padding(4)
         .width(Length::Fill)
         .height(Length::Fill)
         .style(theme::Container::Box)

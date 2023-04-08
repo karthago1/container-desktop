@@ -12,26 +12,14 @@ use super::ui::*;
 pub struct ListItem(pub Vec<ListCell>);
 
 #[derive(Debug, Clone)]
-pub enum Status {
-    Exited,
-    Running,
-}
-
-impl Status {
-    pub fn is_running(&self) -> bool {
-        matches!(*self, Status::Running)
-    }
-}
-
-#[derive(Debug, Clone)]
 pub struct ListItemMsg(pub usize);
 
 #[derive(Debug, Clone)]
 pub enum ListCell {
-    IconStatus(&'static str),
+    IconStatus(&'static str, bool),
     TextButton(String),
     IconButton(&'static str),
-    IconToggleButton(&'static str, &'static str),
+    IconToggleButton(&'static str, &'static str, bool),
 }
 
 impl ListItem {
@@ -40,12 +28,11 @@ impl ListItem {
         index: usize,
         width: iced::Length,
         height: f32,
-        status: Status,
     ) -> iced::Element<ListItemMsg> {
         let e = &self.0[index];
 
         match e {
-            ListCell::IconStatus(icon) => icon_status(icon, status.is_running())
+            ListCell::IconStatus(icon, status) => icon_status(icon, *status)
                 .width(width)
                 .height(height)
                 .into(),
@@ -67,15 +54,13 @@ impl ListItem {
                 .on_press(ListItemMsg(index))
                 .into(),
 
-            ListCell::IconToggleButton(active, disabled) => icon_button(if status.is_running() {
-                disabled
-            } else {
-                active
-            })
-            .width(width)
-            .height(height)
-            .on_press(ListItemMsg(index))
-            .into(),
+            ListCell::IconToggleButton(active, disabled, status) => {
+                icon_button(if *status { disabled } else { active })
+                    .width(width)
+                    .height(height)
+                    .on_press(ListItemMsg(index))
+                    .into()
+            }
         }
     }
 }
