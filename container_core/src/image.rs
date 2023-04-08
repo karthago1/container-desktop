@@ -16,5 +16,5 @@ impl Image {
 
 #[async_trait]
 pub trait ImageProvider: Send + Sync + Debug {
-    async fn list(&self) -> Option<Vec<Image>>;
+    async fn list_images(&self) -> Option<Vec<Image>>;
 }

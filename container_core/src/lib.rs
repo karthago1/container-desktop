@@ -1,8 +1,7 @@
+use container::ContainerProvider;
 use image::ImageProvider;
 
+pub mod container;
 pub mod image;
 
-#[derive(Debug)]
-pub struct CorePlugin {
-    pub image_provider: Box::<dyn ImageProvider>,
-}
+pub trait CorePlugin: ImageProvider + ContainerProvider {}

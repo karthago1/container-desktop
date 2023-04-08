@@ -1,5 +1,6 @@
 use std::{any::Any, thread, time, vec};
 
+use container_core::container::Container;
 use iced::Command;
 
 use crate::{
@@ -9,6 +10,7 @@ use crate::{
         loading_view,
     },
     iview::{IView, IViewMsg, ViewMessage, ViewState},
+    provider::Provider,
 };
 
 pub struct ContainerView {
@@ -25,6 +27,24 @@ impl IViewMsg for ContainerMsg {
     fn as_any(&self) -> &dyn Any {
         self
     }
+}
+
+fn list_item(name: String, image: String) -> ListItem {
+    ListItem(vec![
+        ListCell::IconStatus("image.png"),
+        ListCell::TextButton(name),
+        ListCell::TextButton(image),
+        ListCell::IconToggleButton("play.png", "stop.png"),
+        ListCell::IconButton("delete.png"),
+    ])
+}
+
+fn map_container(list: Vec<Container>) -> Box<dyn IViewMsg + Send> {
+    let result = list
+        .into_iter()
+        .map(|c| list_item(if c.name.is_empty() { c.id } else { c.name }, c.image))
+        .collect::<Vec<ListItem>>();
+    Box::new(ContainerMsg::View(ListMsg::NewItems(result))) as Box<dyn IViewMsg + Send>
 }
 
 impl Default for ContainerView {
@@ -56,17 +76,8 @@ impl IView for ContainerView {
 
     fn update(&mut self, message: ViewMessage) -> Command<ViewMessage> {
         match message {
-            ViewMessage::Init => {
-                self.view_state = ViewState::Loading;
-                return Command::perform(ContainerView::load(), ViewMessage::Loaded);
-            }
-            ViewMessage::Selected => {
-                if let ViewState::Uninitialized = self.view_state {
-                    self.view_state = ViewState::Loading;
-                    return Command::perform(ContainerView::load(), ViewMessage::Loaded);
-                }
-            }
-
+            ViewMessage::Init => return self.init(),
+            ViewMessage::Selected => return self.init(),
             ViewMessage::Error => println!("NOT IMPLEMENED Error"),
             ViewMessage::Unselected => println!("NOT IMPLEMENED Unselected"),
             ViewMessage::Loaded(state) => {
@@ -111,18 +122,14 @@ impl ContainerView {
         ])
     }
 
-    async fn load() -> Box<dyn IViewMsg + Send> {
-        dbg!("load called..");
-        thread::sleep(time::Duration::from_secs(1));
-        Box::new(ContainerMsg::View(ListMsg::NewItems(vec![
-            Self::container_item("container 1".to_string(), "Ubuntu".to_string()),
-            Self::container_item("container 2".to_string(), "Debian".to_string()),
-            Self::container_item(
-                "mono".to_string(),
-                "sha256:ea49d6ddc21b6ca2e00b002e7f254325df0ff7eb1a9eb8a9a15ad151eda39be0"
-                    .to_string(),
-            ),
-            Self::container_item("container 22".to_string(), "Alpine".to_string()),
-        ])))
+    fn init(&mut self) -> Command<ViewMessage> {
+        self.view_state = ViewState::Loading;
+        Command::perform(
+            Provider::global().list_containers(),
+            move |imgs| match imgs {
+                Some(list) => ViewMessage::Loaded(map_container(list)),
+                None => ViewMessage::Error,
+            },
+        )
     }
 }

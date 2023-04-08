@@ -13,7 +13,7 @@ static PLUGIN_ENTRY_FUNCTION: &[u8] = b"initialize\0";
 
 #[derive(Debug)]
 pub struct Provider {
-    provider: CorePlugin,
+    provider: Box<dyn CorePlugin>,
     _libs: Vec<Library>,
 }
 
@@ -32,11 +32,12 @@ fn get_plugin(dir: &Path) -> PathBuf {
 }
 
 impl Provider {
-    pub fn global() -> &'static CorePlugin {
-        &INSTANCE
+    pub fn global() -> &'static dyn CorePlugin {
+        INSTANCE
             .get()
             .expect("Provider is not initialized")
             .provider
+            .as_ref()
     }
 
     pub fn initialize() {
@@ -53,8 +54,9 @@ impl Provider {
             let lib = libloading::Library::new(lib_path).unwrap();
 
             let res = {
-                let plugin_entry_fn: libloading::Symbol<unsafe extern "C" fn() -> CorePlugin> =
-                    lib.get(PLUGIN_ENTRY_FUNCTION).unwrap();
+                let plugin_entry_fn: libloading::Symbol<
+                    unsafe extern "C" fn() -> Box<dyn CorePlugin>,
+                > = lib.get(PLUGIN_ENTRY_FUNCTION).unwrap();
                 plugin_entry_fn()
             };
 

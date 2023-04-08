@@ -1,4 +1,5 @@
 use container_core::{
+    container::{Container, ContainerProvider},
     image::{Image, ImageProvider},
     CorePlugin,
 };
@@ -7,11 +8,13 @@ use std::{future, thread, time};
 use async_trait::async_trait;
 
 #[derive(Default, Debug)]
-pub struct ImageSimulation;
+pub struct Simulation;
+
+impl CorePlugin for Simulation {}
 
 #[async_trait]
-impl ImageProvider for ImageSimulation {
-    async fn list(&self) -> Option<Vec<Image>> {
+impl ImageProvider for Simulation {
+    async fn list_images(&self) -> Option<Vec<Image>> {
         thread::sleep(time::Duration::from_secs(1));
         future::ready(Some(vec![
             Image::new(
@@ -49,9 +52,39 @@ impl ImageProvider for ImageSimulation {
     }
 }
 
-#[no_mangle]
-pub fn initialize() -> CorePlugin {
-    CorePlugin {
-        image_provider: Box::<ImageSimulation>::default(),
+#[async_trait]
+impl ContainerProvider for Simulation {
+    async fn list_containers(&self) -> Option<Vec<Container>> {
+        thread::sleep(time::Duration::from_secs(1));
+        future::ready(Some(vec![
+            Container::new(
+                "sha256:ea49d6ddc21b6ca2e00b002e7f254325df0ff7eb1a9eb8a9a15ad151eda39be0"
+                    .to_string(),
+                "Ubuntu Container".to_string(),
+                "Ubuntu".to_string(),
+                true,
+            ),
+            Container::new(
+                "sha256:1119d6ddc21b6ca2e00b002e7f254325df0ff7eb1a9eb8a9a15ad151eda39be0"
+                    .to_string(),
+                "Debian Container".to_string(),
+                "Debian".to_string(),
+                false,
+            ),
+            Container::new(
+                "sha256:2229d6ddc21b6ca2e00b002e7f254325df0ff7eb1a9eb8a9a15ad151eda39be0"
+                    .to_string(),
+                "Custom Container".to_string(),
+                "sha256:5654657c21b6ca2e00b002e7f254325df0ff7eb1a9eb8a9a15ad151eda39123"
+                    .to_string(),
+                true,
+            ),
+        ]))
+        .await
     }
+}
+
+#[no_mangle]
+pub fn initialize() -> Box<dyn CorePlugin> {
+    Box::<Simulation>::default()
 }

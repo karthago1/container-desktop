@@ -122,12 +122,9 @@ impl IView for ImageView {
 impl ImageView {
     fn init(&mut self) -> Command<ViewMessage> {
         self.view_state = ViewState::Loading;
-        Command::perform(
-            Provider::global().image_provider.list(),
-            move |imgs| match imgs {
-                Some(imgs) => ViewMessage::Loaded(map_image(imgs)),
-                None => ViewMessage::Error,
-            },
-        )
+        Command::perform(Provider::global().list_images(), move |imgs| match imgs {
+            Some(imgs) => ViewMessage::Loaded(map_image(imgs)),
+            None => ViewMessage::Error,
+        })
     }
 }
