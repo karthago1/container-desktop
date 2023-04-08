@@ -1,5 +1,6 @@
 use std::any::Any;
 
+use container_core::Error;
 use iced::Command;
 
 #[derive(Debug)]
@@ -8,7 +9,7 @@ pub enum ViewMessage {
     Loaded(Box<dyn IViewMsg + Send>),
     Selected,
     Unselected,
-    Error,
+    Error(Error),
 }
 
 #[derive(Default, Debug)]

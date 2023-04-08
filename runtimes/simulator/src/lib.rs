@@ -1,7 +1,7 @@
 use container_core::{
     container::{Container, ContainerProvider},
     image::{Image, ImageProvider},
-    CorePlugin,
+    CorePlugin, Error,
 };
 use std::{future, thread, time};
 
@@ -14,9 +14,9 @@ impl CorePlugin for Simulation {}
 
 #[async_trait]
 impl ImageProvider for Simulation {
-    async fn list_images(&self) -> Option<Vec<Image>> {
+    async fn list_images(&self) -> Result<Vec<Image>, Error> {
         thread::sleep(time::Duration::from_secs(1));
-        future::ready(Some(vec![
+        future::ready(Ok::<Vec<Image>, Error>(vec![
             Image::new(
                 "sha256:ea49d6ddc21b6ca2e00b002e7f254325df0ff7eb1a9eb8a9a15ad151eda39be0"
                     .to_string(),
@@ -54,9 +54,9 @@ impl ImageProvider for Simulation {
 
 #[async_trait]
 impl ContainerProvider for Simulation {
-    async fn list_containers(&self) -> Option<Vec<Container>> {
+    async fn list_containers(&self) -> Result<Vec<Container>, Error> {
         thread::sleep(time::Duration::from_secs(1));
-        future::ready(Some(vec![
+        future::ready(Ok(vec![
             Container::new(
                 "sha256:ea49d6ddc21b6ca2e00b002e7f254325df0ff7eb1a9eb8a9a15ad151eda39be0"
                     .to_string(),
@@ -81,6 +81,13 @@ impl ContainerProvider for Simulation {
             ),
         ]))
         .await
+    }
+
+    async fn start_container(&self, _id: String) -> Result<(), Error> {
+        Ok(())
+    }
+    async fn stop_container(&self, _id: String) -> Result<(), Error> {
+        Ok(())
     }
 }
 

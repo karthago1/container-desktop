@@ -1,0 +1,43 @@
+ImageSummary { 
+    id: "sha256:8e490e604922d1167f65d439d91ea1534221c7391de74493705e4c840418cee2",
+ parent_id: "sha256:b5e15864386c30e7ab53acabc2575631a576cbe3b63eb447c184f539add720ac", 
+ repo_tags: ["mono2:latest"], 
+ repo_digests: [], 
+ created: 1652516108, 
+ size: 897701827, 
+ shared_size: -1, 
+ virtual_size: 897701827, 
+ labels: {}, 
+ containers: -1 }
+
+ ImageSummary { 
+    id: "sha256:5d5d3a4e8a86f546fddf0f757b9ac62d2d3f3958cc3776c407e9480abf0a94ae", 
+    parent_id: "sha256:7fe36da8b690a198a26c7434e53f853e642a1dbc6afeabb42d4b288ac25876b0", 
+    repo_tags: ["<none>:<none>"], 
+    repo_digests: ["<none>@<none>"], 
+    created: 1671535148, 
+    size: 599335414, 
+    shared_size: -1, 
+    virtual_size: 599335414, 
+    labels: {}, 
+    containers: -1
+    }
+
+
+
+
+ContainerSummary { 
+    id: Some("67ef592bc10e7e6b4521dbdb790f5fe297ca5964943eb8d601931155ded93e2b"), 
+    names: Some(["/iotcore"]), 
+    image: Some("iotcore"), 
+    image_id: Some("sha256:1fbcfc0989dab20c848b9eba943026515b421230da0f4cf69e56ec9649781ed0"), 
+    command: Some("bash"), 
+    created: Some(1671613265), 
+    ports: Some([]),
+     size_rw: None, 
+     size_root_fs: None, 
+     labels: Some({}), 
+     state: Some("exited"), 
+     status: Some("Exited (137) 2 months ago"), 
+     host_config: Some(ContainerSummaryHostConfig { network_mode: Some("default") }), 
+     network_settings: Some(ContainerSummaryNetworkSettings { networks: Some({"bridge": EndpointSettings { ipam_config: None, links: None, aliases: None, network_id: Some("76fa60b4638647cbc8b6aa2c7f29ff243a4ff43d3a153fbb55f6d48b215921a3"), endpoint_id: Some(""), gateway: Some(""), ip_address: Some(""), ip_prefix_len: Some(0), ipv6_gateway: Some(""), global_ipv6_address: Some(""), global_ipv6_prefix_len: Some(0), mac_address: Some(""), driver_opts: None }}) }), mounts: Some([MountPoint { typ: Some(BIND), name: None, source: Some("/home/endless/Documents/docker-dev"), destination: Some("/apps"), driver: None, mode: Some(""), rw: Some(true), propagation: Some("rprivate") }]) }

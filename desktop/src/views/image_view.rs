@@ -85,7 +85,7 @@ impl IView for ImageView {
         match message {
             ViewMessage::Init => return self.init(),
             ViewMessage::Selected => return self.init(),
-            ViewMessage::Error => println!("NOT IMPLEMENED Error"),
+            ViewMessage::Error(err) => println!("{:?}", err),
             ViewMessage::Unselected => println!("NOT IMPLEMENED Unselected"),
             ViewMessage::Loaded(state) => {
                 let msg = state
@@ -96,10 +96,10 @@ impl IView for ImageView {
                 match msg {
                     ImageMsg::View(msg) => {
                         match msg {
-                            ListMsg::Item(msg) =>
+                            ListMsg::Item(_index, msg) =>
                             /*TODO*/
                             {
-                                println!("{}", msg.0);
+                                println!("{}", msg.index);
                             }
                             _ => {
                                 self.list_view.update(msg.clone());
@@ -122,8 +122,8 @@ impl ImageView {
     fn init(&mut self) -> Command<ViewMessage> {
         self.view_state = ViewState::Loading;
         Command::perform(Provider::global().list_images(), move |imgs| match imgs {
-            Some(imgs) => ViewMessage::Loaded(map_image(imgs)),
-            None => ViewMessage::Error,
+            Ok(imgs) => ViewMessage::Loaded(map_image(imgs)),
+            Err(err) => ViewMessage::Error(err),
         })
     }
 }

@@ -5,7 +5,7 @@ use iced::Command;
 
 use crate::{
     controls::{
-        list_item::{ListCell, ListItem},
+        list_item::{ListCell, ListItem, ListItemMsg},
         list_view::{ListMsg, ListView},
         loading_view,
     },
@@ -21,7 +21,13 @@ pub struct ContainerView {
 #[derive(Debug)]
 enum ContainerMsg {
     View(ListMsg),
+    Started(usize),
+    Stopped(usize),
 }
+
+static COLUMN_INDEX_STATUS: usize = 0;
+static COLUMN_INDEX_ID: usize = 1;
+static COLUMN_INDEX_PLAY_STOP: usize = 3;
 
 impl IViewMsg for ContainerMsg {
     fn as_any(&self) -> &dyn Any {
@@ -84,7 +90,7 @@ impl IView for ContainerView {
         match message {
             ViewMessage::Init => return self.init(),
             ViewMessage::Selected => return self.init(),
-            ViewMessage::Error => println!("NOT IMPLEMENED Error"),
+            ViewMessage::Error(err) => println!("{:?}", err),
             ViewMessage::Unselected => println!("NOT IMPLEMENED Unselected"),
             ViewMessage::Loaded(state) => {
                 let msg = state
@@ -93,18 +99,63 @@ impl IView for ContainerView {
                     .expect("Wasn't a correct state!");
 
                 match msg {
-                    ContainerMsg::View(msg) => {
-                        match msg {
-                            ListMsg::Item(msg) =>
-                            /*TODO*/
-                            {
-                                println!("{}", msg.0);
-                            }
-                            _ => {
-                                self.list_view.update(msg.clone());
-                                self.view_state = ViewState::Loaded;
+                    ContainerMsg::View(msg) => match msg {
+                        ListMsg::Item(row, msg) => {
+                            if msg.index == COLUMN_INDEX_PLAY_STOP {
+                                let cell = self.list_view.get_cell(*row, COLUMN_INDEX_ID).unwrap();
+                                if let ListCell::TextButton(name) = cell {
+                                    let name = name.to_string();
+                                    let row = *row;
+                                    return if msg.state {
+                                        Command::perform(
+                                            Provider::global().stop_container(name),
+                                            move |e| match e {
+                                                Ok(_) => ViewMessage::Loaded(Box::new(
+                                                    ContainerMsg::Stopped(row),
+                                                )),
+                                                Err(err) => ViewMessage::Error(err),
+                                            },
+                                        )
+                                    } else {
+                                        Command::perform(
+                                            Provider::global().start_container(name),
+                                            move |e| match e {
+                                                Ok(_) => ViewMessage::Loaded(Box::new(
+                                                    ContainerMsg::Started(row),
+                                                )),
+                                                Err(err) => ViewMessage::Error(err),
+                                            },
+                                        )
+                                    };
+                                }
+                            } else {
+                                println!("clicked {}", msg.index);
                             }
                         }
+                        _ => {
+                            self.list_view.update(msg.clone());
+                            self.view_state = ViewState::Loaded;
+                        }
+                    },
+                    ContainerMsg::Started(row) => {
+                        self.list_view.update(ListMsg::Item(
+                            *row,
+                            ListItemMsg::new(COLUMN_INDEX_PLAY_STOP, true),
+                        ));
+                        self.list_view.update(ListMsg::Item(
+                            *row,
+                            ListItemMsg::new(COLUMN_INDEX_STATUS, true),
+                        ));
+                    }
+                    ContainerMsg::Stopped(row) => {
+                        self.list_view.update(ListMsg::Item(
+                            *row,
+                            ListItemMsg::new(COLUMN_INDEX_PLAY_STOP, false),
+                        ));
+                        self.list_view.update(ListMsg::Item(
+                            *row,
+                            ListItemMsg::new(COLUMN_INDEX_STATUS, false),
+                        ));
                     }
                 }
             }
@@ -123,8 +174,8 @@ impl ContainerView {
         Command::perform(
             Provider::global().list_containers(),
             move |imgs| match imgs {
-                Some(list) => ViewMessage::Loaded(map_container(list)),
-                None => ViewMessage::Error,
+                Ok(list) => ViewMessage::Loaded(map_container(list)),
+                Err(err) => ViewMessage::Error(err),
             },
         )
     }

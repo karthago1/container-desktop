@@ -9,6 +9,8 @@ use crate::{
     style,
 };
 
+use super::list_item::ListCell;
+
 pub struct ListView {
     state: State,
     columns_width: Vec<iced::Length>,
@@ -22,7 +24,7 @@ struct State {
 #[derive(Debug, Clone)]
 pub enum ListMsg {
     NewItems(Vec<ListItem>),
-    Item(ListItemMsg),
+    Item(usize, ListItemMsg),
 }
 
 impl ListView {
@@ -31,6 +33,11 @@ impl ListView {
             columns_width,
             state: State::default(),
         }
+    }
+
+    pub fn get_cell(&self, row: usize, column: usize) -> Option<&ListCell> {
+        let item = self.state.items.get(row)?;
+        item.get_cell(column)
     }
 
     /*fn view2(&self) -> iced::Element<ViewMessage> {
@@ -71,14 +78,15 @@ impl ListView {
                 self.state
                     .items
                     .iter()
-                    .map(|item| {
+                    .enumerate()
+                    .map(|(row, item)| {
                         {
                             container(
                                 iced::widget::row(
                                     (0..self.columns_width.len())
                                         .map(|i| {
-                                            item.get(i, self.columns_width[i], 40.0)
-                                                .map(ListMsg::Item)
+                                            item.get_view(i, self.columns_width[i], 40.0)
+                                                .map(move |msg| ListMsg::Item(row, msg))
                                         })
                                         .collect(),
                                 )
@@ -103,10 +111,8 @@ impl ListView {
 
     pub fn update(&mut self, message: ListMsg) {
         match message {
-            ListMsg::NewItems(items) => {
-                self.state.items = items;
-            }
-            _ => (),
+            ListMsg::NewItems(items) => self.state.items = items,
+            ListMsg::Item(row, msg) => self.state.items[row].update(msg),
         }
     }
 

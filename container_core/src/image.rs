@@ -2,6 +2,8 @@ use std::fmt::Debug;
 
 use async_trait::async_trait;
 
+use crate::Error;
+
 pub struct Image {
     pub id: String,
     pub name: String,
@@ -16,5 +18,5 @@ impl Image {
 
 #[async_trait]
 pub trait ImageProvider: Send + Sync + Debug {
-    async fn list_images(&self) -> Option<Vec<Image>>;
+    async fn list_images(&self) -> Result<Vec<Image>, Error>;
 }
