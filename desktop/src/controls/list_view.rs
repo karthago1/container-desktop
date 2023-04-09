@@ -93,9 +93,9 @@ impl ListView {
                     })
                     .collect(),
             )
-            .spacing(4),
+            .spacing(4)
+            .padding([4., 10., 4., 4.]),
         ))
-        .padding(4)
         .width(Length::Fill)
         .height(Length::Fill)
         .style(theme::Container::Box)
@@ -108,5 +108,4 @@ impl ListView {
             ListMsg::Item(row, msg) => self.state.items[row].update(msg),
         }
     }
-
 }
