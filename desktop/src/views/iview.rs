@@ -6,7 +6,7 @@ use iced::Command;
 #[derive(Debug)]
 pub enum ViewMessage {
     Init,
-    Loaded(Box<dyn IViewMsg + Send>),
+    Loaded(Box<dyn Any + Send>),
     Selected,
     Unselected,
     Error(Error),
@@ -18,10 +18,6 @@ pub enum ViewState {
     Uninitialized,
     Loading,
     Loaded,
-}
-
-pub trait IViewMsg: std::fmt::Debug {
-    fn as_any(&self) -> &dyn Any;
 }
 
 pub trait IView {

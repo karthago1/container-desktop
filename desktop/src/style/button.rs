@@ -11,7 +11,7 @@ pub struct Button {
     text_color: Color,
 }
 
-impl Button {
+/*impl Button {
     pub fn new(radius: f32, background: Option<Background>, text_color: Color) -> Self {
         Self {
             radius,
@@ -19,7 +19,7 @@ impl Button {
             text_color,
         }
     }
-}
+}*/
 
 impl Default for Button {
     fn default() -> Self {

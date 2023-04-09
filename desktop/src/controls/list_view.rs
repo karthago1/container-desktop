@@ -9,8 +9,6 @@ use crate::{
     style,
 };
 
-use super::list_item::ListCell;
-
 pub struct ListView {
     state: State,
     columns_width: Vec<iced::Length>,
@@ -33,11 +31,6 @@ impl ListView {
             columns_width,
             state: State::default(),
         }
-    }
-
-    pub fn get_cell(&self, row: usize, column: usize) -> Option<&ListCell> {
-        let item = self.state.items.get(row)?;
-        item.get_cell(column)
     }
 
     /*fn view2(&self) -> iced::Element<ViewMessage> {

@@ -12,15 +12,9 @@ use super::ui::*;
 pub struct ListItem(pub Vec<ListCell>);
 
 #[derive(Debug, Clone)]
-pub struct ListItemMsg {
-    pub index: usize,
-    pub state: bool,
-}
-
-impl ListItemMsg {
-    pub fn new(index: usize, state: bool) -> Self {
-        Self { index, state }
-    }
+pub enum ListItemMsg {
+    Clicked(usize),
+    ChangeCell(usize, ListCell),
 }
 
 #[derive(Debug, Clone)]
@@ -28,14 +22,9 @@ pub enum ListCell {
     IconStatus(&'static str, bool),
     TextButton(String),
     IconButton(&'static str),
-    IconToggleButton(&'static str, &'static str, bool),
 }
 
 impl ListItem {
-    pub fn get_cell(&self, index: usize) -> Option<&ListCell> {
-        self.0.get(index)
-    }
-
     pub fn get_view(
         &self,
         index: usize,
@@ -58,31 +47,20 @@ impl ListItem {
             .style(theme::Button::Text)
             .width(width)
             .height(height)
-            .on_press(ListItemMsg::new(index, true))
+            .on_press(ListItemMsg::Clicked(index))
             .into(),
 
             ListCell::IconButton(icon) => icon_button(icon)
                 .width(width)
                 .height(height)
-                .on_press(ListItemMsg::new(index, true))
+                .on_press(ListItemMsg::Clicked(index))
                 .into(),
-
-            ListCell::IconToggleButton(active, disabled, status) => {
-                icon_button(if *status { disabled } else { active })
-                    .width(width)
-                    .height(height)
-                    .on_press(ListItemMsg::new(index, *status))
-                    .into()
-            }
         }
     }
 
     pub fn update(&mut self, msg: ListItemMsg) {
-        let cell = &mut self.0[msg.index];
-        match cell {
-            ListCell::IconToggleButton(_, _, status) => *status = msg.state,
-            ListCell::IconStatus(_, status) => *status = msg.state,
-            _ => (),
+        if let ListItemMsg::ChangeCell(index, new_cell) = msg {
+            self.0[index] = new_cell;
         }
     }
 }

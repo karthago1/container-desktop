@@ -14,12 +14,12 @@ pub static PRIMARY_DARK: &Color = &Color {
     a: 1.,
 };
 
-pub static PRIMARY_LIGHT: &Color = &Color {
+/*pub static PRIMARY_LIGHT: &Color = &Color {
     r: 0x6d as f32 / 255.,
     g: 0x6d as f32 / 255.,
     b: 0x6d as f32 / 255.,
     a: 1.,
-};
+};*/
 
 pub static PRIMARY_TEXT: &Color = &Color {
     r: 1.,

@@ -1,6 +1,6 @@
 use container_core::image::Image;
 use iced::Command;
-use std::{any::Any, vec};
+use std::vec;
 
 use crate::{
     controls::{
@@ -8,7 +8,7 @@ use crate::{
         list_view::{ListMsg, ListView},
         loading_view,
     },
-    iview::{IView, IViewMsg, ViewMessage, ViewState},
+    iview::{IView, ViewMessage, ViewState},
     provider::Provider,
 };
 
@@ -20,12 +20,7 @@ pub struct ImageView {
 #[derive(Debug)]
 enum ImageMsg {
     View(ListMsg),
-}
-
-impl IViewMsg for ImageMsg {
-    fn as_any(&self) -> &dyn Any {
-        self
-    }
+    NewImages(Vec<Image>),
 }
 
 fn list_item(name: String, image: String, status: bool) -> ListItem {
@@ -37,22 +32,20 @@ fn list_item(name: String, image: String, status: bool) -> ListItem {
     ])
 }
 
-fn map_image(imgs: Vec<Image>) -> Box<dyn IViewMsg + Send> {
-    let result = imgs
-        .into_iter()
+fn map_image(imgs: &[Image]) -> Vec<ListItem> {
+    imgs.iter()
         .map(|img| {
             list_item(
                 if img.name.is_empty() {
-                    img.id
+                    img.id.clone()
                 } else {
-                    img.name
+                    img.name.clone()
                 },
                 format!("{} MB", img.size as f32 / 1024. / 1024.),
                 false,
             )
         })
-        .collect::<Vec<ListItem>>();
-    Box::new(ImageMsg::View(ListMsg::NewItems(result))) as Box<dyn IViewMsg + Send>
+        .collect()
 }
 
 impl Default for ImageView {
@@ -88,24 +81,27 @@ impl IView for ImageView {
             ViewMessage::Error(err) => println!("{:?}", err),
             ViewMessage::Unselected => println!("NOT IMPLEMENED Unselected"),
             ViewMessage::Loaded(state) => {
-                let msg = state
-                    .as_any()
-                    .downcast_ref::<ImageMsg>()
-                    .expect("Wasn't a correct state!");
+                let state = state
+                    .downcast::<ImageMsg>()
+                    .expect("expected box to be ImageMsg");
 
-                match msg {
+                match *state {
                     ImageMsg::View(msg) => {
                         match msg {
-                            ListMsg::Item(_index, msg) =>
+                            ListMsg::Item(row, _msg) =>
                             /*TODO*/
                             {
-                                println!("{}", msg.index);
+                                println!("event {row}");
                             }
                             _ => {
-                                self.list_view.update(msg.clone());
-                                self.view_state = ViewState::Loaded;
+                                self.list_view.update(msg);
                             }
                         }
+                    }
+                    ImageMsg::NewImages(list) => {
+                        let msg = map_image(&list);
+                        self.list_view.update(ListMsg::NewItems(msg));
+                        self.view_state = ViewState::Loaded;
                     }
                 }
             }
@@ -122,7 +118,7 @@ impl ImageView {
     fn init(&mut self) -> Command<ViewMessage> {
         self.view_state = ViewState::Loading;
         Command::perform(Provider::global().list_images(), move |imgs| match imgs {
-            Ok(imgs) => ViewMessage::Loaded(map_image(imgs)),
+            Ok(imgs) => ViewMessage::Loaded(Box::new(ImageMsg::NewImages(imgs))),
             Err(err) => ViewMessage::Error(err),
         })
     }

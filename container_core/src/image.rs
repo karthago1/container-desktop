@@ -4,6 +4,7 @@ use async_trait::async_trait;
 
 use crate::Error;
 
+#[derive(Debug)]
 pub struct Image {
     pub id: String,
     pub name: String,
