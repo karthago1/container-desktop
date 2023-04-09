@@ -90,6 +90,7 @@ impl IView for ContainerView {
             ViewMessage::Selected => return self.init(),
             ViewMessage::Error(err) => println!("{:?}", err),
             ViewMessage::Unselected => println!("NOT IMPLEMENED Unselected"),
+            ViewMessage::Update => return self.create_load_cmd(),
             ViewMessage::Loaded(state) => return self.process_loaded_msg(state),
             ViewMessage::UpdateBadge(_) => (),
         }
@@ -98,8 +99,7 @@ impl IView for ContainerView {
 }
 
 impl ContainerView {
-    fn init(&mut self) -> Command<ViewMessage> {
-        self.view_state = ViewState::Loading;
+    fn create_load_cmd(&self) -> Command<ViewMessage> {
         Command::perform(
             Provider::global().list_containers(),
             move |imgs| match imgs {
@@ -107,6 +107,10 @@ impl ContainerView {
                 Err(err) => ViewMessage::Error(err),
             },
         )
+    }
+    fn init(&mut self) -> Command<ViewMessage> {
+        self.view_state = ViewState::Loading;
+        self.create_load_cmd()
     }
 
     fn replace_cell(&mut self, row: usize, col: usize, new_cell: ListCell) {
@@ -156,41 +160,50 @@ impl ContainerView {
                 }
                 _ => self.list_view.update(msg),
             },
-            ContainerMsg::Started(row) => {
-                self.containers[row].running = true;
-                self.replace_cell(
-                    row,
-                    COLUMN_INDEX_PLAY_STOP,
-                    ListCell::IconButton("stop.png"),
-                );
-                self.replace_cell(
-                    row,
-                    COLUMN_INDEX_STATUS,
-                    ListCell::IconStatus("container.png", true),
-                );
-            }
-            ContainerMsg::Stopped(row) => {
-                self.containers[row].running = false;
-                self.replace_cell(
-                    row,
-                    COLUMN_INDEX_PLAY_STOP,
-                    ListCell::IconButton("play.png"),
-                );
-                self.replace_cell(
-                    row,
-                    COLUMN_INDEX_STATUS,
-                    ListCell::IconStatus("container.png", false),
-                );
-            }
-            ContainerMsg::NewContainers(list) => {
-                let items = map_container(&list);
-                self.containers = list;
-                self.list_view.update(ListMsg::NewItems(items));
-                self.view_state = ViewState::Loaded;
-                let badge = self.containers.len() as i32;
-                return Command::perform(async move { badge }, ViewMessage::UpdateBadge);
-            }
+            ContainerMsg::Started(row) => self.update_running_state(row, true),
+            ContainerMsg::Stopped(row) => self.update_running_state(row, false),
+            ContainerMsg::NewContainers(list) => return self.diff_apply(list),
         }
         Command::none()
+    }
+
+    fn update_running_state(&mut self, row: usize, running: bool) {
+        self.containers[row].running = running;
+        self.replace_cell(
+            row,
+            COLUMN_INDEX_PLAY_STOP,
+            ListCell::IconButton(if running { "stop.png" } else { "play.png" }),
+        );
+        self.replace_cell(
+            row,
+            COLUMN_INDEX_STATUS,
+            ListCell::IconStatus("container.png", running),
+        );
+    }
+
+    fn diff_apply(&mut self, list: Vec<Container>) -> Command<ViewMessage> {
+        let mut new_changes = false;
+        if list.len() == self.containers.len() {
+            for (row, new) in list.iter().enumerate() {
+                if new.id != self.containers[row].id {
+                    new_changes = true;
+                    break;
+                }
+
+                if new.running != self.containers[row].running {
+                    self.update_running_state(row, new.running);
+                }
+            }
+            if !new_changes {
+                return Command::none();
+            }
+        }
+
+        let items = map_container(&list);
+        self.containers = list;
+        self.list_view.update(ListMsg::NewItems(items));
+        self.view_state = ViewState::Loaded;
+        let badge = self.containers.len() as i32;
+        Command::perform(async move { badge }, ViewMessage::UpdateBadge)
     }
 }

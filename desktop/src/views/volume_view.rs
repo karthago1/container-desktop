@@ -19,6 +19,7 @@ impl IView for VolumeView {
             ViewMessage::Init => println!("NOT IMPLEMENED Init"),
             ViewMessage::Selected => println!("NOT IMPLEMENED Selected"),
             ViewMessage::Unselected => println!("NOT IMPLEMENED Unselected"),
+            ViewMessage::Update => println!("NOT IMPLEMENED Update"),
             ViewMessage::Error(err) => println!("{:?}", err),
             ViewMessage::Loaded(_state) => {
                 println!("NOT IMPLEMENED Loaded")

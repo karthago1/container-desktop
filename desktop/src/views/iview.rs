@@ -11,6 +11,7 @@ pub enum ViewMessage {
     Unselected,
     Error(Error),
     UpdateBadge(i32),
+    Update,
 }
 
 #[derive(Default, Debug)]

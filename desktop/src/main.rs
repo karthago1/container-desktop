@@ -1,7 +1,7 @@
 use provider::Provider;
 
 use container_view::ContainerView;
-use iced::{theme, widget::row, Application, Command, Element, Settings, Theme};
+use iced::{theme, widget::row, Application, Command, Element, Settings, Theme, Subscription};
 use image_view::ImageView;
 use iview::{IView, ViewMessage};
 use main_menu::{MainMenu, MainMenuItem};
@@ -116,5 +116,9 @@ impl Application for MainWindow {
             success: *colors::ACCENT,
             danger: *colors::ERROR,
         })
+    }
+
+    fn subscription(&self) -> Subscription<Message> {
+        iced::time::every(std::time::Duration::from_millis(1500)).map(|_| Message::View(IndexedViewMessage::new(0, ViewMessage::Update)))
     }
 }
