@@ -10,6 +10,7 @@ pub enum ViewMessage {
     Selected,
     Unselected,
     Error(Error),
+    UpdateBadge(i32),
 }
 
 #[derive(Default, Debug)]
@@ -23,5 +24,4 @@ pub enum ViewState {
 pub trait IView {
     fn view(&self) -> iced::Element<ViewMessage>;
     fn update(&mut self, message: ViewMessage) -> Command<ViewMessage>;
-    fn get_badge_number(&self) -> Option<i32>;
 }

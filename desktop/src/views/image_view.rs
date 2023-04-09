@@ -102,15 +102,14 @@ impl IView for ImageView {
                         let msg = map_image(&list);
                         self.list_view.update(ListMsg::NewItems(msg));
                         self.view_state = ViewState::Loaded;
+                        let badge = list.len() as i32;
+                        return Command::perform(async move { badge }, ViewMessage::UpdateBadge);
                     }
                 }
             }
+            ViewMessage::UpdateBadge(_) => (),
         }
         Command::none()
-    }
-
-    fn get_badge_number(&self) -> Option<i32> {
-        Some(self.list_view.get_item_count() as i32)
     }
 }
 

@@ -109,7 +109,4 @@ impl ListView {
         }
     }
 
-    pub fn get_item_count(&self) -> usize {
-        self.state.items.len()
-    }
 }

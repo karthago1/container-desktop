@@ -84,16 +84,23 @@ impl Application for MainWindow {
                     .update(ViewMessage::Selected)
                     .map(move |new_msg| Message::View(IndexedViewMessage::new(view_index, new_msg)))
             }
-            Message::View(msg) => self.views[msg.index]
-                .update(msg.msg)
-                .map(move |new_msg| Message::View(IndexedViewMessage::new(msg.index, new_msg))),
+            Message::View(msg) => {
+                if let ViewMessage::UpdateBadge(badge) = msg.msg {
+                    self.menu
+                        .update(main_menu::MainMenuMessage::Badge(msg.index, Some(badge)));
+                    Command::none()
+                } else {
+                    self.views[msg.index].update(msg.msg).map(move |new_msg| {
+                        Message::View(IndexedViewMessage::new(msg.index, new_msg))
+                    })
+                }
+            }
         }
     }
 
     fn view(&self) -> Element<Message> {
-        let badges: Vec<Option<i32>> = self.views.iter().map(|e| e.get_badge_number()).collect();
         row(vec![
-            self.menu.view(badges).map(Message::MenuMessage),
+            self.menu.view().map(Message::MenuMessage),
             self.views[self.menu.selected_index]
                 .view()
                 .map(|msg| Message::View(IndexedViewMessage::new(self.menu.selected_index, msg))),

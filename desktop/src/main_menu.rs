@@ -10,6 +10,7 @@ use crate::style;
 pub struct MainMenuItem {
     pub text: String,
     pub icon: String,
+    pub badge: Option<i32>,
 }
 
 #[derive(Default)]
@@ -22,11 +23,16 @@ pub struct MainMenu {
 #[derive(Debug, Clone)]
 pub enum MainMenuMessage {
     SelectedIndex(usize),
+    Badge(usize, Option<i32>),
 }
 
 impl MainMenuItem {
     pub fn new(text: String, icon: String) -> Self {
-        Self { text, icon }
+        Self {
+            text,
+            icon,
+            badge: None,
+        }
     }
 }
 
@@ -41,13 +47,12 @@ impl MainMenu {
 
     pub fn update(&mut self, message: MainMenuMessage) {
         match message {
-            MainMenuMessage::SelectedIndex(index) => {
-                self.selected_index = index;
-            }
+            MainMenuMessage::SelectedIndex(index) => self.selected_index = index,
+            MainMenuMessage::Badge(index, badge) => self.items[index].badge = badge,
         }
     }
 
-    pub fn view(&self, badges: Vec<Option<i32>>) -> Element<MainMenuMessage> {
+    pub fn view(&self) -> Element<MainMenuMessage> {
         column(
             self.items
                 .iter()
@@ -70,7 +75,7 @@ impl MainMenu {
                     ]
                     .align_items(iced::Alignment::Center);
 
-                    if let Some(b) = badges[index] {
+                    if let Some(b) = item.badge {
                         row = row.push(
                             button(
                                 text(b.to_string())

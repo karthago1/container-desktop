@@ -24,11 +24,8 @@ impl IView for VolumeView {
                 println!("NOT IMPLEMENED Loaded")
                 //self.state = *state as State
             }
+            ViewMessage::UpdateBadge(_) => (),
         }
         Command::none()
-    }
-
-    fn get_badge_number(&self) -> Option<i32> {
-        None
     }
 }
