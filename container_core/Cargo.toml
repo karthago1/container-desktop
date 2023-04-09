@@ -5,7 +5,7 @@ edition = "2021"
 authors = ["Hichem, Ben Fekih <hichem.f@live.de>"]
 
 [lib]
-crate-type = ["dylib", "rlib"]
+crate-type = ["rlib"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
