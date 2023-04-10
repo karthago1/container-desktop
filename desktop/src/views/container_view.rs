@@ -28,32 +28,26 @@ enum ContainerMsg {
 }
 
 static COLUMN_INDEX_STATUS: usize = 0;
-static COLUMN_INDEX_PLAY_STOP: usize = 3;
+static COLUMN_INDEX_PLAY_STOP: usize = 4;
 
-fn list_item(name: String, image: String, status: bool) -> ListItem {
+fn list_item(c: &Container) -> ListItem {
+    let name = if c.name.is_empty() {
+        c.id.clone()
+    } else {
+        c.name.clone()
+    };
     ListItem(vec![
-        ListCell::IconStatus("container.png", status),
+        ListCell::IconStatus("container.png", c.running),
         ListCell::TextButton(name),
-        ListCell::TextButton(image),
-        ListCell::IconButton(if status { "stop.png" } else { "play.png" }),
+        ListCell::TextButton(c.name.clone()),
+        ListCell::TextButton(c.status.clone()),
+        ListCell::IconButton(if c.running { "stop.png" } else { "play.png" }),
         ListCell::IconButton("delete.png"),
     ])
 }
 
 fn map_container(list: &[Container]) -> Vec<ListItem> {
-    list.iter()
-        .map(|c| {
-            list_item(
-                if c.name.is_empty() {
-                    c.id.clone()
-                } else {
-                    c.name.clone()
-                },
-                c.image.clone(),
-                c.running,
-            )
-        })
-        .collect()
+    list.iter().map(list_item).collect()
 }
 
 impl Default for ContainerView {
@@ -61,8 +55,9 @@ impl Default for ContainerView {
         Self {
             list_view: ListView::new(vec![
                 iced::Length::Shrink,
-                iced::Length::Fill,
-                iced::Length::FillPortion(3),
+                iced::Length::FillPortion(4),
+                iced::Length::FillPortion(10),
+                iced::Length::FillPortion(5),
                 iced::Length::Shrink,
                 iced::Length::Shrink,
             ]),
@@ -86,11 +81,14 @@ impl IView for ContainerView {
 
     fn update(&mut self, message: ViewMessage) -> Command<ViewMessage> {
         match message {
-            ViewMessage::Init => return self.init(),
+            ViewMessage::Init => {
+                self.view_state = ViewState::Loading;
+                return self.init();
+            }
             ViewMessage::Selected => return self.init(),
             ViewMessage::Error(err) => println!("{:?}", err),
             ViewMessage::Unselected => println!("NOT IMPLEMENED Unselected"),
-            ViewMessage::Update => return self.create_load_cmd(),
+            ViewMessage::Update => return self.init(),
             ViewMessage::Loaded(state) => return self.process_loaded_msg(state),
             ViewMessage::UpdateBadge(_) => (),
         }
@@ -99,7 +97,7 @@ impl IView for ContainerView {
 }
 
 impl ContainerView {
-    fn create_load_cmd(&self) -> Command<ViewMessage> {
+    fn init(&mut self) -> Command<ViewMessage> {
         Command::perform(
             Provider::global().list_containers(),
             move |imgs| match imgs {
@@ -107,10 +105,6 @@ impl ContainerView {
                 Err(err) => ViewMessage::Error(err),
             },
         )
-    }
-    fn init(&mut self) -> Command<ViewMessage> {
-        self.view_state = ViewState::Loading;
-        self.create_load_cmd()
     }
 
     fn replace_cell(&mut self, row: usize, col: usize, new_cell: ListCell) {
@@ -182,6 +176,7 @@ impl ContainerView {
     }
 
     fn diff_apply(&mut self, list: Vec<Container>) -> Command<ViewMessage> {
+        self.view_state = ViewState::Loaded;
         let mut new_changes = false;
         if list.len() == self.containers.len() {
             for (row, new) in list.iter().enumerate() {
@@ -202,7 +197,6 @@ impl ContainerView {
         let items = map_container(&list);
         self.containers = list;
         self.list_view.update(ListMsg::NewItems(items));
-        self.view_state = ViewState::Loaded;
         let badge = self.containers.len() as i32;
         Command::perform(async move { badge }, ViewMessage::UpdateBadge)
     }

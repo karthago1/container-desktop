@@ -95,7 +95,7 @@ impl ContainerProvider for DockerClient {
                         "".to_string()
                     };
                     let running = is_container_running(e.state);
-                    Container::new(id, name, image, running)
+                    Container::new(id, name, image, running, e.status.unwrap_or_default())
                 })
                 .collect()),
             Err(err) => Err(Error(1, err.to_string())),
@@ -117,7 +117,10 @@ impl ContainerProvider for DockerClient {
 
     async fn stop_container(&self, id: String) -> Result<(), Error> {
         println!("stop container {id}");
-        let res = tokio_run(self.docker.stop_container(&id, None::<StopContainerOptions>));
+        let res = tokio_run(
+            self.docker
+                .stop_container(&id, None::<StopContainerOptions>),
+        );
         match res {
             Ok(_) => Ok(()),
             Err(err) => Err(Error(2, err.to_string())),

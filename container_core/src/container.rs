@@ -10,15 +10,17 @@ pub struct Container {
     pub name: String,
     pub image: String,
     pub running: bool,
+    pub status: String,
 }
 
 impl Container {
-    pub fn new(id: String, name: String, image: String, running: bool) -> Self {
+    pub fn new(id: String, name: String, image: String, running: bool, status: String) -> Self {
         Self {
             id,
             name,
             image,
             running,
+            status,
         }
     }
 }

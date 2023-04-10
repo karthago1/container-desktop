@@ -63,6 +63,7 @@ impl ContainerProvider for Simulation {
                 "Ubuntu Container".to_string(),
                 "Ubuntu".to_string(),
                 true,
+                "Up 29 Seconds".to_string(),
             ),
             Container::new(
                 "sha256:1119d6ddc21b6ca2e00b002e7f254325df0ff7eb1a9eb8a9a15ad151eda39be0"
@@ -70,6 +71,7 @@ impl ContainerProvider for Simulation {
                 "Debian Container".to_string(),
                 "Debian".to_string(),
                 false,
+                "Exited (137) 2 months ago".to_string(),
             ),
             Container::new(
                 "sha256:2229d6ddc21b6ca2e00b002e7f254325df0ff7eb1a9eb8a9a15ad151eda39be0"
@@ -78,6 +80,7 @@ impl ContainerProvider for Simulation {
                 "sha256:5654657c21b6ca2e00b002e7f254325df0ff7eb1a9eb8a9a15ad151eda39123"
                     .to_string(),
                 true,
+                "Up 59 Seconds".to_string(),
             ),
         ]))
         .await
