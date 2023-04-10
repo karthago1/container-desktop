@@ -13,15 +13,16 @@ pub struct ListItem(pub Vec<ListCell>);
 
 #[derive(Debug, Clone)]
 pub enum ListItemMsg {
-    Clicked(usize),
+    Clicked(usize, u32),
     ChangeCell(usize, ListCell),
+    TextChanged(usize, String),
 }
 
 #[derive(Debug, Clone)]
 pub enum ListCell {
     IconStatus(&'static str, bool),
-    TextButton(String),
-    IconButton(&'static str),
+    TextButton(String, u32),
+    IconButton(&'static str, u32),
 }
 
 impl ListItem {
@@ -39,7 +40,7 @@ impl ListItem {
                 .height(height)
                 .into(),
 
-            ListCell::TextButton(title) => button(
+            ListCell::TextButton(title, action) => button(
                 text(&title)
                     .size(style::FONT_SIZE_SMALL)
                     .vertical_alignment(Vertical::Center),
@@ -47,13 +48,13 @@ impl ListItem {
             .style(theme::Button::Text)
             .width(width)
             .height(height)
-            .on_press(ListItemMsg::Clicked(index))
+            .on_press(ListItemMsg::Clicked(index, *action))
             .into(),
 
-            ListCell::IconButton(icon) => icon_button(icon)
+            ListCell::IconButton(icon, action) => icon_button(icon)
                 .width(width)
                 .height(height)
-                .on_press(ListItemMsg::Clicked(index))
+                .on_press(ListItemMsg::Clicked(index, *action))
                 .into(),
         }
     }

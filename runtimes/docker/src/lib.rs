@@ -28,7 +28,11 @@ impl Default for DockerClient {
     }
 }
 
-impl CorePlugin for DockerClient {}
+impl CorePlugin for DockerClient {
+    fn is_clone_supported(&self) -> bool {
+        false
+    }
+}
 
 #[async_trait]
 impl ImageProvider for DockerClient {
@@ -42,7 +46,7 @@ impl ImageProvider for DockerClient {
             .map(|e| {
                 let mut name = e.repo_tags.into_iter().collect();
                 if name == "<none>:<none>" {
-                    name = e.id.clone();
+                    name = "".to_string();
                 }
                 Image::new(e.id, name, e.size as usize)
             })
@@ -115,6 +119,12 @@ impl ContainerProvider for DockerClient {
         )?;
         Ok(())
     }
+
+    async fn clone_container(&self, _id: String, _new_name: String) -> Result<()>
+    {
+        Ok(())
+    }
+
 }
 
 #[no_mangle]

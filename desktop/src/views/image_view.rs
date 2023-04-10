@@ -26,9 +26,9 @@ enum ImageMsg {
 fn list_item(name: String, image: String, status: bool) -> ListItem {
     ListItem(vec![
         ListCell::IconStatus("image.png", status),
-        ListCell::TextButton(name),
-        ListCell::TextButton(image),
-        ListCell::IconButton("delete.png"),
+        ListCell::TextButton(name, 0),
+        ListCell::TextButton(image, 0),
+        ListCell::IconButton("delete.png", 0),
     ])
 }
 
@@ -69,7 +69,7 @@ impl IView for ImageView {
             ViewState::Loading => loading_view().into(),
             ViewState::Loaded => self
                 .list_view
-                .view()
+                .view(0, None)
                 .map(move |msg| ViewMessage::Loaded(Box::new(ImageMsg::View(msg)))),
         }
     }

@@ -39,12 +39,16 @@ impl std::fmt::Debug for Client {
     }
 }
 
-impl CorePlugin for Client {}
+impl CorePlugin for Client {
+    fn is_clone_supported(&self) -> bool {
+        true
+    }
+}
 
 #[async_trait]
 impl ImageProvider for Client {
     async fn list_images(&self) -> Result<Vec<Image>> {
-        let guard = self.con.lock();
+        /*let guard = self.con.lock();
         match guard {
             Ok(guard) => {
                 let proxy = guard.with_proxy(DBUS_DEST, DBUS_IFACE, Duration::from_millis(5000));
@@ -61,13 +65,14 @@ impl ImageProvider for Client {
                     .collect())
             }
             Err(err) => Err(anyhow::anyhow!(err.to_string())),
-        }
+        }*/
+        Ok(vec![])
     }
 }
 
 fn read_image(proxy: &Proxy<&Connection>, name: &str) -> String {
     use systemd_machine::OrgFreedesktopMachine1Manager;
-    let res = proxy.get_machine_osrelease(&name);
+    let res = proxy.get_image_osrelease(&name);
     if let Ok(dict) = res {
         let pretty = dict.get("PRETTY_NAME");
         if let Some(pretty) = pretty {
@@ -107,14 +112,21 @@ impl ContainerProvider for Client {
                 let proxy = guard.with_proxy(DBUS_DEST, DBUS_IFACE, Duration::from_millis(5000));
                 use systemd_machine::OrgFreedesktopMachine1Manager;
 
-                let imgs = proxy.list_machines()?;
-                Ok(imgs
+                let imgs = proxy.list_images()?;
+
+                let machines = proxy.list_machines()?;
+
+                let containers: Vec<Container> = imgs
                     .into_iter()
-                    .map(|(n, class, service, _path)| {
-                        let image = read_image(&proxy, &n);
-                        Container::new(n, image, service, true, class)
+                    .filter(|(n, _, _, _, _, _, _)| !n.starts_with('.') || n == ".host")
+                    .map(|(n, t, _ro, _created, _mtime, _size, _p)| {
+                        let found = machines.iter().find(|&e| e.0 == n);
+                        let img = read_image(&proxy, &n);
+                        Container::new(n, "".to_string(), img, found.is_some(), t)
                     })
-                    .collect())
+                    .collect();
+
+                Ok(containers)
             }
             Err(err) => Err(anyhow::anyhow!(err.to_string())),
         }
@@ -155,6 +167,19 @@ impl ContainerProvider for Client {
                 use systemd::OrgFreedesktopSystemd1Manager;
                 let service_name = generate_service_name(&id);
                 let _ = proxy.stop_unit(&service_name, "fail")?;
+                Ok(())
+            }
+            Err(err) => Err(anyhow::anyhow!(err.to_string())),
+        }
+    }
+
+    async fn clone_container(&self, id: String, new_name: String) -> Result<()> {
+        let guard = self.con.lock();
+        match guard {
+            Ok(guard) => {
+                let proxy = guard.with_proxy(DBUS_DEST, DBUS_IFACE, Duration::from_millis(5000));
+                use systemd_machine::OrgFreedesktopMachine1Manager;
+                proxy.clone_image(&id, &new_name, false)?;
                 Ok(())
             }
             Err(err) => Err(anyhow::anyhow!(err.to_string())),

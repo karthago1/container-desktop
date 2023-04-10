@@ -28,5 +28,6 @@ pub trait ContainerProvider: Send + Sync + Debug {
     async fn list_containers(&self) -> Result<Vec<Container>>;
     async fn start_container(&self, id: String) -> Result<()>;
     async fn stop_container(&self, id: String) -> Result<()>;
+    async fn clone_container(&self, id: String, new_name: String) -> Result<()>;
     //async fn container_info(&self, id: String) -> Result<(), Error>;
 }

@@ -4,4 +4,6 @@ use image::ImageProvider;
 pub mod container;
 pub mod image;
 
-pub trait CorePlugin: ImageProvider + ContainerProvider {}
+pub trait CorePlugin: ImageProvider + ContainerProvider {
+    fn is_clone_supported(&self) -> bool;
+}

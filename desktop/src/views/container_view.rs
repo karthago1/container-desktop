@@ -8,6 +8,7 @@ use crate::{
         list_item::{ListCell, ListItem, ListItemMsg},
         list_view::{ListMsg, ListView},
         loading_view,
+        ui::icon_button,
     },
     iview::{IView, ViewMessage, ViewState},
     provider::Provider,
@@ -17,6 +18,14 @@ pub struct ContainerView {
     list_view: ListView,
     view_state: ViewState,
     containers: Vec<Container>,
+    detail_view: DetailView,
+    clone_name: String,
+}
+
+enum DetailView {
+    None,
+    Clone(usize),
+    Info(usize),
 }
 
 #[derive(Debug)]
@@ -25,10 +34,17 @@ enum ContainerMsg {
     Started(usize),
     Stopped(usize),
     NewContainers(Vec<Container>),
+    Cloned,
 }
 
 static COLUMN_INDEX_STATUS: usize = 0;
 static COLUMN_INDEX_PLAY_STOP: usize = 4;
+
+static ACTION_EMPTY: u32 = 0;
+static ACTION_STOP_START: u32 = 1;
+static ACTION_CLONE: u32 = 3;
+static ACTION_SHOW_CLONE_DIALOG: u32 = 4;
+static ACTION_DELETE: u32 = 5;
 
 fn list_item(c: &Container) -> ListItem {
     let name = if c.name.is_empty() {
@@ -36,14 +52,24 @@ fn list_item(c: &Container) -> ListItem {
     } else {
         c.name.clone()
     };
-    ListItem(vec![
+
+    let mut cells: Vec<ListCell> = vec![
         ListCell::IconStatus("container.png", c.running),
-        ListCell::TextButton(name),
-        ListCell::TextButton(c.name.clone()),
-        ListCell::TextButton(c.status.clone()),
-        ListCell::IconButton(if c.running { "stop.png" } else { "play.png" }),
-        ListCell::IconButton("delete.png"),
-    ])
+        ListCell::TextButton(name, ACTION_EMPTY),
+        ListCell::TextButton(c.name.clone(), ACTION_EMPTY),
+        ListCell::TextButton(c.status.clone(), ACTION_EMPTY),
+        ListCell::IconButton(
+            if c.running { "stop.png" } else { "play.png" },
+            ACTION_STOP_START,
+        ),
+        ListCell::IconButton("delete.png", ACTION_DELETE),
+    ];
+
+    if Provider::global().is_clone_supported() {
+        cells.push(ListCell::IconButton("clone.png", ACTION_SHOW_CLONE_DIALOG));
+    }
+
+    ListItem(cells)
 }
 
 fn map_container(list: &[Container]) -> Vec<ListItem> {
@@ -52,17 +78,25 @@ fn map_container(list: &[Container]) -> Vec<ListItem> {
 
 impl Default for ContainerView {
     fn default() -> Self {
+        let mut item_lengths: Vec<iced::Length> = vec![
+            iced::Length::Shrink,
+            iced::Length::FillPortion(4),
+            iced::Length::FillPortion(10),
+            iced::Length::FillPortion(5),
+            iced::Length::Shrink,
+            iced::Length::Shrink,
+        ];
+
+        if Provider::global().is_clone_supported() {
+            item_lengths.push(iced::Length::Shrink);
+        }
+
         Self {
-            list_view: ListView::new(vec![
-                iced::Length::Shrink,
-                iced::Length::FillPortion(4),
-                iced::Length::FillPortion(10),
-                iced::Length::FillPortion(5),
-                iced::Length::Shrink,
-                iced::Length::Shrink,
-            ]),
+            list_view: ListView::new(item_lengths),
             view_state: ViewState::default(),
             containers: vec![],
+            detail_view: DetailView::None,
+            clone_name: "".to_string(),
         }
     }
 }
@@ -72,10 +106,12 @@ impl IView for ContainerView {
         match self.view_state {
             ViewState::Uninitialized => loading_view().into(),
             ViewState::Loading => loading_view().into(),
-            ViewState::Loaded => self
-                .list_view
-                .view()
-                .map(move |msg| ViewMessage::Loaded(Box::new(ContainerMsg::View(msg)))),
+            ViewState::Loaded => {
+                let (row, view) = self.create_detail_view();
+                self.list_view
+                    .view(row, view)
+                    .map(move |msg| ViewMessage::Loaded(Box::new(ContainerMsg::View(msg))))
+            }
         }
     }
 
@@ -107,6 +143,27 @@ impl ContainerView {
         )
     }
 
+    fn create_detail_view(&self) -> (usize, Option<iced::Element<ListMsg>>) {
+        match self.detail_view {
+            DetailView::None => (0, None),
+            DetailView::Info(_row) => (0, None),
+            DetailView::Clone(row) => (
+                row,
+                Some(
+                    iced::widget::row![
+                        iced::widget::text_input("New Name", &self.clone_name, move |value| {
+                            ListMsg::Item(row, ListItemMsg::TextChanged(0, value))
+                        }),
+                        icon_button("done.png")
+                            .on_press(ListMsg::Item(row, ListItemMsg::Clicked(0, ACTION_CLONE)))
+                    ]
+                    .height(40)
+                    .into(),
+                ),
+            ),
+        }
+    }
+
     fn replace_cell(&mut self, row: usize, col: usize, new_cell: ListCell) {
         self.list_view
             .update(ListMsg::Item(row, ListItemMsg::ChangeCell(col, new_cell)));
@@ -124,8 +181,8 @@ impl ContainerView {
             .expect("expected box to be ContainerMsg");
         match *state {
             ContainerMsg::View(msg) => match msg {
-                ListMsg::Item(row, ListItemMsg::Clicked(col)) => {
-                    if col == COLUMN_INDEX_PLAY_STOP {
+                ListMsg::Item(row, ListItemMsg::Clicked(col, action)) => {
+                    if action == ACTION_STOP_START {
                         self.set_busy_cells(row);
                         let container = &self.containers[row];
                         let id = container.id.clone();
@@ -149,15 +206,41 @@ impl ContainerView {
                                 }
                             })
                         };
+                    } else if action == ACTION_SHOW_CLONE_DIALOG {
+                        match self.detail_view {
+                            DetailView::Clone(_) => self.detail_view = DetailView::None,
+                            DetailView::Info(_) => {
+                                self.clone_name.clear();
+                                self.detail_view = DetailView::Clone(row);
+                            }
+                            DetailView::None => {
+                                self.clone_name.clear();
+                                self.detail_view = DetailView::Clone(row);
+                            }
+                        }
+                    } else if action == ACTION_CLONE {
+                        let container = &self.containers[row];
+                        return Command::perform(
+                            Provider::global()
+                                .clone_container(container.id.clone(), self.clone_name.clone()),
+                            |e| match e {
+                                Ok(_) => ViewMessage::Loaded(Box::new(ContainerMsg::Cloned)),
+                                Err(err) => ViewMessage::Error(err),
+                            },
+                        );
                     } else {
                         println!("clicked {row}, {col}");
                     }
+                }
+                ListMsg::Item(_row, ListItemMsg::TextChanged(_col, value)) => {
+                    self.clone_name = value
                 }
                 _ => self.list_view.update(msg),
             },
             ContainerMsg::Started(row) => self.update_running_state(row, true),
             ContainerMsg::Stopped(row) => self.update_running_state(row, false),
             ContainerMsg::NewContainers(list) => return self.diff_apply(list),
+            ContainerMsg::Cloned => self.detail_view = DetailView::None,
         }
         Command::none()
     }
@@ -167,7 +250,10 @@ impl ContainerView {
         self.replace_cell(
             row,
             COLUMN_INDEX_PLAY_STOP,
-            ListCell::IconButton(if running { "stop.png" } else { "play.png" }),
+            ListCell::IconButton(
+                if running { "stop.png" } else { "play.png" },
+                ACTION_STOP_START,
+            ),
         );
         self.replace_cell(
             row,

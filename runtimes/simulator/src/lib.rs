@@ -10,7 +10,11 @@ use std::{future, thread, time};
 #[derive(Default, Debug)]
 pub struct Simulation;
 
-impl CorePlugin for Simulation {}
+impl CorePlugin for Simulation {
+    fn is_clone_supported(&self) -> bool {
+        false
+    }
+}
 
 #[async_trait]
 impl ImageProvider for Simulation {
@@ -90,6 +94,9 @@ impl ContainerProvider for Simulation {
         Ok(())
     }
     async fn stop_container(&self, _id: String) -> Result<()> {
+        Ok(())
+    }
+    async fn clone_container(&self, _id: String, _new_name: String) -> Result<()> {
         Ok(())
     }
 }
