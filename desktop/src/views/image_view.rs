@@ -79,7 +79,6 @@ impl IView for ImageView {
             ViewMessage::Init => return self.init(),
             ViewMessage::Selected => return self.init(),
             ViewMessage::Error(err) => println!("{:?}", err),
-            ViewMessage::Unselected => println!("NOT IMPLEMENED Unselected"),
             ViewMessage::Update => println!("NOT IMPLEMENED Update"), //return self.create_load_cmd(),
             ViewMessage::Loaded(state) => {
                 let state = state
@@ -108,6 +107,7 @@ impl IView for ImageView {
                     }
                 }
             }
+            ViewMessage::Unselected => (),
             ViewMessage::UpdateBadge(_) => (),
         }
         Command::none()

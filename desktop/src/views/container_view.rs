@@ -87,9 +87,9 @@ impl IView for ContainerView {
             }
             ViewMessage::Selected => return self.init(),
             ViewMessage::Error(err) => println!("{:?}", err),
-            ViewMessage::Unselected => println!("NOT IMPLEMENED Unselected"),
             ViewMessage::Update => return self.init(),
             ViewMessage::Loaded(state) => return self.process_loaded_msg(state),
+            ViewMessage::Unselected => (),
             ViewMessage::UpdateBadge(_) => (),
         }
         Command::none()
