@@ -1,8 +1,7 @@
+use anyhow::Result;
 use std::fmt::Debug;
 
 use async_trait::async_trait;
-
-use crate::Error;
 
 #[derive(Debug)]
 pub struct Image {
@@ -19,5 +18,5 @@ impl Image {
 
 #[async_trait]
 pub trait ImageProvider: Send + Sync + Debug {
-    async fn list_images(&self) -> Result<Vec<Image>, Error>;
+    async fn list_images(&self) -> Result<Vec<Image>>;
 }

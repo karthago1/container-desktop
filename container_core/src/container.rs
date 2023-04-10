@@ -1,8 +1,6 @@
-use std::fmt::Debug;
-
+use anyhow::Result;
 use async_trait::async_trait;
-
-use crate::Error;
+use std::fmt::Debug;
 
 #[derive(Debug)]
 pub struct Container {
@@ -27,7 +25,8 @@ impl Container {
 
 #[async_trait]
 pub trait ContainerProvider: Send + Sync + Debug {
-    async fn list_containers(&self) -> Result<Vec<Container>, Error>;
-    async fn start_container(&self, id: String) -> Result<(), Error>;
-    async fn stop_container(&self, id: String) -> Result<(), Error>;
+    async fn list_containers(&self) -> Result<Vec<Container>>;
+    async fn start_container(&self, id: String) -> Result<()>;
+    async fn stop_container(&self, id: String) -> Result<()>;
+    //async fn container_info(&self, id: String) -> Result<(), Error>;
 }

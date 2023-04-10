@@ -8,6 +8,7 @@ homepage = "git@github.com:karthago1/container-desktop.git"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+anyhow = "1.0.70"
 container_core = { version = "0.1.0", path = "../container_core" }
 iced = { version = "0.8.0", features = ["image", "async-std"] }
 iced_native = "0.9.1"

@@ -10,5 +10,6 @@ crate-type = ["dylib"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+anyhow = "1.0.70"
 async-trait = "0.1.68"
 container_core = { version = "0.1.0", path = "../../container_core" }
