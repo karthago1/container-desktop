@@ -4,5 +4,6 @@ members = [
     "container_core",
     "runtimes/simulator",
     "runtimes/docker",
+    "runtimes/nspawn",
 ]
 resolver = "2"

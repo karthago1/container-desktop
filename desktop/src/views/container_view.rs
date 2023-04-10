@@ -128,18 +128,19 @@ impl ContainerView {
                     if col == COLUMN_INDEX_PLAY_STOP {
                         self.set_busy_cells(row);
                         let container = &self.containers[row];
-                        let name = container.name.clone();
+                        let id = container.id.clone();
                         return if container.running {
-                            Command::perform(Provider::global().stop_container(name), move |e| {
-                                match e {
+                            Command::perform(
+                                Provider::global().stop_container(id),
+                                move |e| match e {
                                     Ok(_) => {
                                         ViewMessage::Loaded(Box::new(ContainerMsg::Stopped(row)))
                                     }
                                     Err(err) => ViewMessage::Error(err),
-                                }
-                            })
+                                },
+                            )
                         } else {
-                            Command::perform(Provider::global().start_container(name), move |e| {
+                            Command::perform(Provider::global().start_container(id), move |e| {
                                 match e {
                                     Ok(_) => {
                                         ViewMessage::Loaded(Box::new(ContainerMsg::Started(row)))
