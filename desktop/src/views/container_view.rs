@@ -12,6 +12,7 @@ use crate::{
     },
     iview::{IView, ViewMessage, ViewState},
     provider::Provider,
+    style::ContainerBackground,
 };
 
 pub struct ContainerView {
@@ -150,14 +151,24 @@ impl ContainerView {
             DetailView::Clone(row) => (
                 row,
                 Some(
-                    iced::widget::row![
-                        iced::widget::text_input("New Name", &self.clone_name, move |value| {
-                            ListMsg::Item(row, ListItemMsg::TextChanged(0, value))
-                        }),
-                        icon_button("done.png")
-                            .on_press(ListMsg::Item(row, ListItemMsg::Clicked(0, ACTION_CLONE)))
-                    ]
-                    .height(40)
+                    iced::widget::container(
+                        iced::widget::row![
+                            iced::widget::text_input("New Name", &self.clone_name, move |value| {
+                                ListMsg::Item(row, ListItemMsg::TextChanged(0, value))
+                            }),
+                            icon_button("done.png").on_press(ListMsg::Item(
+                                row,
+                                ListItemMsg::Clicked(0, ACTION_CLONE)
+                            ))
+                        ]
+                        .width(300)
+                        .height(40),
+                    )
+                    .style(iced::theme::Container::Custom(Box::new(
+                        ContainerBackground(*crate::style::colors::PRIMARY),
+                    )))
+                    .center_x()
+                    .width(iced::Length::Fill)
                     .into(),
                 ),
             ),
