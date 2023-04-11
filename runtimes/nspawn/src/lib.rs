@@ -185,6 +185,19 @@ impl ContainerProvider for Client {
             Err(err) => Err(anyhow::anyhow!(err.to_string())),
         }
     }
+
+    async fn remove_container(&self, id: String) -> Result<()> {
+        let guard = self.con.lock();
+        match guard {
+            Ok(guard) => {
+                let proxy = guard.with_proxy(DBUS_DEST, DBUS_IFACE, Duration::from_millis(5000));
+                use systemd_machine::OrgFreedesktopMachine1Manager;
+                proxy.remove_image(&id)?;
+                Ok(())
+            }
+            Err(err) => Err(anyhow::anyhow!(err.to_string())),
+        }
+    }
 }
 
 #[no_mangle]

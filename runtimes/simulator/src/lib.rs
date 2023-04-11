@@ -99,6 +99,10 @@ impl ContainerProvider for Simulation {
     async fn clone_container(&self, _id: String, _new_name: String) -> Result<()> {
         Ok(())
     }
+    async fn remove_container(&self, _id: String) -> Result<()>
+    {
+        Ok(())
+    }
 }
 
 #[no_mangle]

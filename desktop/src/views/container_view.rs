@@ -36,6 +36,7 @@ enum ContainerMsg {
     Stopped(usize),
     NewContainers(Vec<Container>),
     Cloned,
+    Deleted(usize),
 }
 
 static COLUMN_INDEX_STATUS: usize = 0;
@@ -180,9 +181,9 @@ impl ContainerView {
             .update(ListMsg::Item(row, ListItemMsg::ChangeCell(col, new_cell)));
     }
 
-    fn set_busy_cells(&mut self, row: usize) {
+    fn set_busy_cell(&mut self, row: usize, col: usize) {
         let new_cell = ListCell::IconStatus("hourglass.png", true);
-        self.replace_cell(row, COLUMN_INDEX_PLAY_STOP, new_cell.clone());
+        self.replace_cell(row, col, new_cell.clone());
         self.replace_cell(row, COLUMN_INDEX_STATUS, new_cell);
     }
 
@@ -194,7 +195,7 @@ impl ContainerView {
             ContainerMsg::View(msg) => match msg {
                 ListMsg::Item(row, ListItemMsg::Clicked(col, action)) => {
                     if action == ACTION_STOP_START {
-                        self.set_busy_cells(row);
+                        self.set_busy_cell(row, col);
                         let container = &self.containers[row];
                         let id = container.id.clone();
                         return if container.running {
@@ -239,6 +240,16 @@ impl ContainerView {
                                 Err(err) => ViewMessage::Error(err),
                             },
                         );
+                    } else if action == ACTION_DELETE {
+                        self.set_busy_cell(row, col);
+                        let container = &self.containers[row];
+                        return Command::perform(
+                            Provider::global().remove_container(container.id.clone()),
+                            move |e| match e {
+                                Ok(_) => ViewMessage::Loaded(Box::new(ContainerMsg::Deleted(row))),
+                                Err(err) => ViewMessage::Error(err),
+                            },
+                        );
                     } else {
                         println!("clicked {row}, {col}");
                     }
@@ -252,6 +263,7 @@ impl ContainerView {
             ContainerMsg::Stopped(row) => self.update_running_state(row, false),
             ContainerMsg::NewContainers(list) => return self.diff_apply(list),
             ContainerMsg::Cloned => self.detail_view = DetailView::None,
+            ContainerMsg::Deleted(_row) => (), /* will be delete automatically later */
         }
         Command::none()
     }

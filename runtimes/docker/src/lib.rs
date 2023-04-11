@@ -122,9 +122,13 @@ impl ContainerProvider for DockerClient {
 
     async fn clone_container(&self, _id: String, _new_name: String) -> Result<()>
     {
-        Ok(())
+        todo!("docker clone container")
     }
 
+    async fn remove_container(&self, _id: String) -> Result<()>
+    {
+        todo!("docker remove container")
+    }
 }
 
 #[no_mangle]
