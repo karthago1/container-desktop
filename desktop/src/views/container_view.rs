@@ -11,7 +11,8 @@ use crate::{
         ui::icon_button,
     },
     provider::Provider,
-    style::ContainerBackground, views::{ViewMessage, ViewState, IView},
+    style::ContainerBackground,
+    views::{IView, ViewMessage, ViewState},
 };
 
 pub struct ContainerView {
@@ -153,9 +154,13 @@ impl ContainerView {
                 Some(
                     iced::widget::container(
                         iced::widget::row![
-                            iced::widget::text_input("Clone Name", &self.clone_name, move |value| {
-                                ListMsg::Item(row, ListItemMsg::TextChanged(0, value))
-                            }),
+                            iced::widget::text_input(
+                                "Clone Name",
+                                &self.clone_name,
+                                move |value| {
+                                    ListMsg::Item(row, ListItemMsg::TextChanged(0, value))
+                                }
+                            ),
                             icon_button("done.png").on_press(ListMsg::Item(
                                 row,
                                 ListItemMsg::Clicked(0, ACTION_CLONE)
@@ -186,6 +191,62 @@ impl ContainerView {
         self.replace_cell(row, COLUMN_INDEX_STATUS, new_cell);
     }
 
+    fn start_stop_container_cmd(&mut self, row: usize, col: usize) -> Command<ViewMessage> {
+        self.set_busy_cell(row, col);
+        let container = &self.containers[row];
+        let id = container.id.clone();
+        if container.running {
+            Command::perform(Provider::global().stop_container(id), move |e| match e {
+                Ok(_) => ViewMessage::Loaded(Box::new(ContainerMsg::Stopped(row))),
+                Err(err) => ViewMessage::Error(err),
+            })
+        } else {
+            Command::perform(Provider::global().start_container(id), move |e| match e {
+                Ok(_) => ViewMessage::Loaded(Box::new(ContainerMsg::Started(row))),
+                Err(err) => ViewMessage::Error(err),
+            })
+        }
+    }
+
+    fn show_detail_view_cmd(&mut self, row: usize) -> Command<ViewMessage> {
+        match self.detail_view {
+            DetailView::Clone(_) => self.detail_view = DetailView::None,
+            DetailView::Info(_) => {
+                self.clone_name.clear();
+                self.detail_view = DetailView::Clone(row);
+            }
+            DetailView::None => {
+                self.clone_name.clear();
+                self.detail_view = DetailView::Clone(row);
+            }
+        }
+
+        Command::none()
+    }
+
+    fn clone_cmd(&self, row: usize) -> Command<ViewMessage> {
+        let container = &self.containers[row];
+        Command::perform(
+            Provider::global().clone_container(container.id.clone(), self.clone_name.clone()),
+            |e| match e {
+                Ok(_) => ViewMessage::Loaded(Box::new(ContainerMsg::Cloned)),
+                Err(err) => ViewMessage::Error(err),
+            },
+        )
+    }
+
+    fn delete_cmd(&mut self, row: usize, col: usize) -> Command<ViewMessage> {
+        self.set_busy_cell(row, col);
+        let container = &self.containers[row];
+        Command::perform(
+            Provider::global().remove_container(container.id.clone()),
+            move |e| match e {
+                Ok(_) => ViewMessage::Loaded(Box::new(ContainerMsg::Deleted(row))),
+                Err(err) => ViewMessage::Error(err),
+            },
+        )
+    }
+
     fn process_loaded_msg(&mut self, state: Box<dyn Any>) -> Command<ViewMessage> {
         let state = state
             .downcast::<ContainerMsg>()
@@ -193,64 +254,17 @@ impl ContainerView {
         match *state {
             ContainerMsg::View(msg) => match msg {
                 ListMsg::Item(row, ListItemMsg::Clicked(col, action)) => {
-                    if action == ACTION_STOP_START {
-                        self.set_busy_cell(row, col);
-                        let container = &self.containers[row];
-                        let id = container.id.clone();
-                        return if container.running {
-                            Command::perform(
-                                Provider::global().stop_container(id),
-                                move |e| match e {
-                                    Ok(_) => {
-                                        ViewMessage::Loaded(Box::new(ContainerMsg::Stopped(row)))
-                                    }
-                                    Err(err) => ViewMessage::Error(err),
-                                },
-                            )
-                        } else {
-                            Command::perform(Provider::global().start_container(id), move |e| {
-                                match e {
-                                    Ok(_) => {
-                                        ViewMessage::Loaded(Box::new(ContainerMsg::Started(row)))
-                                    }
-                                    Err(err) => ViewMessage::Error(err),
-                                }
-                            })
-                        };
+                    return if action == ACTION_STOP_START {
+                        self.start_stop_container_cmd(row, col)
                     } else if action == ACTION_SHOW_CLONE_DIALOG {
-                        match self.detail_view {
-                            DetailView::Clone(_) => self.detail_view = DetailView::None,
-                            DetailView::Info(_) => {
-                                self.clone_name.clear();
-                                self.detail_view = DetailView::Clone(row);
-                            }
-                            DetailView::None => {
-                                self.clone_name.clear();
-                                self.detail_view = DetailView::Clone(row);
-                            }
-                        }
+                        self.show_detail_view_cmd(row)
                     } else if action == ACTION_CLONE {
-                        let container = &self.containers[row];
-                        return Command::perform(
-                            Provider::global()
-                                .clone_container(container.id.clone(), self.clone_name.clone()),
-                            |e| match e {
-                                Ok(_) => ViewMessage::Loaded(Box::new(ContainerMsg::Cloned)),
-                                Err(err) => ViewMessage::Error(err),
-                            },
-                        );
+                        self.clone_cmd(row)
                     } else if action == ACTION_DELETE {
-                        self.set_busy_cell(row, col);
-                        let container = &self.containers[row];
-                        return Command::perform(
-                            Provider::global().remove_container(container.id.clone()),
-                            move |e| match e {
-                                Ok(_) => ViewMessage::Loaded(Box::new(ContainerMsg::Deleted(row))),
-                                Err(err) => ViewMessage::Error(err),
-                            },
-                        );
+                        self.delete_cmd(row, col)
                     } else {
                         println!("clicked {row}, {col}");
+                        Command::none()
                     }
                 }
                 ListMsg::Item(_row, ListItemMsg::TextChanged(_col, value)) => {
