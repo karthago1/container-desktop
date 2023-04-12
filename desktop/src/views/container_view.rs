@@ -10,9 +10,8 @@ use crate::{
         loading_view,
         ui::icon_button,
     },
-    iview::{IView, ViewMessage, ViewState},
     provider::Provider,
-    style::ContainerBackground,
+    style::ContainerBackground, views::{ViewMessage, ViewState, IView},
 };
 
 pub struct ContainerView {
@@ -154,7 +153,7 @@ impl ContainerView {
                 Some(
                     iced::widget::container(
                         iced::widget::row![
-                            iced::widget::text_input("New Name", &self.clone_name, move |value| {
+                            iced::widget::text_input("Clone Name", &self.clone_name, move |value| {
                                 ListMsg::Item(row, ListItemMsg::TextChanged(0, value))
                             }),
                             icon_button("done.png").on_press(ListMsg::Item(

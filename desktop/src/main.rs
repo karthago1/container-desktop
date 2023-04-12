@@ -1,31 +1,16 @@
-use provider::Provider;
-
-use container_view::ContainerView;
-use iced::{theme, widget::row, Application, Command, Element, Settings, Theme, Subscription};
-use image_view::ImageView;
-use iview::{IView, ViewMessage};
+use iced::{theme, widget::row, Application, Command, Element, Settings, Subscription, Theme};
 use main_menu::{MainMenu, MainMenuItem};
 use message::{IndexedViewMessage, Message};
+use provider::Provider;
 use style::colors;
-use volume_view::VolumeView;
-
-#[path = "./views/iview.rs"]
-mod iview;
-
-#[path = "./views/container_view.rs"]
-mod container_view;
-
-#[path = "./views/image_view.rs"]
-mod image_view;
-
-#[path = "./views/volume_view.rs"]
-mod volume_view;
+use views::{IView, container_view::ContainerView, image_view::ImageView, volume_view::VolumeView, ViewMessage};
 
 mod controls;
 mod main_menu;
 mod message;
 mod provider;
 mod style;
+mod views;
 
 fn main() -> iced::Result {
     MainWindow::run(Settings::default())
@@ -119,6 +104,7 @@ impl Application for MainWindow {
     }
 
     fn subscription(&self) -> Subscription<Message> {
-        iced::time::every(std::time::Duration::from_millis(1500)).map(|_| Message::View(IndexedViewMessage::new(0, ViewMessage::Update)))
+        iced::time::every(std::time::Duration::from_millis(1500))
+            .map(|_| Message::View(IndexedViewMessage::new(0, ViewMessage::Update)))
     }
 }

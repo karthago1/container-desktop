@@ -1,4 +1,4 @@
-use crate::{iview::ViewMessage, main_menu::MainMenuMessage};
+use crate::{main_menu::MainMenuMessage, views::ViewMessage};
 
 #[derive(Debug)]
 pub enum Message {

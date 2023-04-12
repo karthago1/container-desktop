@@ -8,9 +8,10 @@ use crate::{
         list_view::{ListMsg, ListView},
         loading_view,
     },
-    iview::{IView, ViewMessage, ViewState},
     provider::Provider,
 };
+
+use super::{IView, ViewMessage, ViewState};
 
 pub struct ImageView {
     list_view: ListView,

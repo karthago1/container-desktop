@@ -3,7 +3,7 @@ use iced::{
     Command,
 };
 
-use crate::iview::{IView, ViewMessage};
+use super::{IView, ViewMessage};
 
 #[derive(Default)]
 pub struct VolumeView;
