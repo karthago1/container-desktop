@@ -1,4 +1,4 @@
-use iced::{theme, widget::container};
+use iced::{theme, widget::container, Length};
 
 use super::dialog::Dialog;
 
@@ -15,7 +15,15 @@ where
             iced::widget::text("Error").size(24),
             iced::widget::column![
                 iced::widget::text(err),
-                iced::widget::button(iced::widget::text("Ok")).on_press(close_msg.clone()),
+                container(
+                    iced::widget::button(
+                        iced::widget::text("Close")
+                            .horizontal_alignment(iced::alignment::Horizontal::Center)
+                    )
+                    .on_press(close_msg.clone())
+                )
+                .width(Length::Fill)
+                .align_x(iced::alignment::Horizontal::Right),
             ]
             .spacing(10)
         ]
