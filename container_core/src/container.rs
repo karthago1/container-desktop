@@ -2,7 +2,7 @@ use anyhow::Result;
 use async_trait::async_trait;
 use std::fmt::Debug;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Container {
     pub id: String,
     pub name: String,

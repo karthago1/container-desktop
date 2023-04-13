@@ -11,7 +11,7 @@ use crate::{
     provider::Provider,
 };
 
-use super::{IView, ViewMessage, ViewState};
+use super::{view_result, IView, ViewError, ViewMessage, ViewResult, ViewState};
 
 pub struct ImageView {
     list_view: ListView,
@@ -21,7 +21,7 @@ pub struct ImageView {
 #[derive(Debug)]
 enum ImageMsg {
     View(ListMsg),
-    NewImages(Vec<Image>),
+    NewImages(ViewResult<Vec<Image>>),
 }
 
 fn list_item(name: String, image: String, status: bool) -> ListItem {
@@ -79,7 +79,6 @@ impl IView for ImageView {
         match message {
             ViewMessage::Init => return self.init(),
             ViewMessage::Selected => return self.init(),
-            ViewMessage::Error(err) => println!("{:?}", err),
             ViewMessage::Update => println!("NOT IMPLEMENED Update"), //return self.create_load_cmd(),
             ViewMessage::Loaded(state) => {
                 let state = state
@@ -99,13 +98,19 @@ impl IView for ImageView {
                             }
                         }
                     }
-                    ImageMsg::NewImages(list) => {
-                        let msg = map_image(&list);
-                        self.list_view.update(ListMsg::NewItems(msg));
-                        self.view_state = ViewState::Loaded;
-                        let badge = list.len() as i32;
-                        return Command::perform(async move { badge }, ViewMessage::UpdateBadge);
-                    }
+                    ImageMsg::NewImages(list) => match list {
+                        Ok(list) => {
+                            let msg = map_image(&list);
+                            self.list_view.update(ListMsg::NewItems(msg));
+                            self.view_state = ViewState::Loaded;
+                            let badge = list.len() as i32;
+                            return Command::perform(
+                                async move { badge },
+                                ViewMessage::UpdateBadge,
+                            );
+                        }
+                        Err(err) => println!("{:?}", err),
+                    },
                 }
             }
             ViewMessage::Unselected => (),
@@ -117,9 +122,8 @@ impl IView for ImageView {
 
 impl ImageView {
     fn create_load_cmd(&self) -> Command<ViewMessage> {
-        Command::perform(Provider::global().list_images(), move |imgs| match imgs {
-            Ok(imgs) => ViewMessage::Loaded(Box::new(ImageMsg::NewImages(imgs))),
-            Err(err) => ViewMessage::Error(err),
+        Command::perform(Provider::global().list_images(), |imgs| {
+            ViewMessage::Loaded(Box::new(ImageMsg::NewImages(view_result!(imgs))))
         })
     }
 
