@@ -227,17 +227,23 @@ impl ContainerView {
     }
 
     fn show_detail_view_cmd(&mut self, row: usize) -> Command<ViewMessage> {
-        match self.detail_view {
-            DetailView::Clone(_) => self.detail_view = DetailView::None,
+        self.detail_view = match self.detail_view {
+            DetailView::Clone(old_row) => {
+                if old_row == row {
+                    DetailView::None
+                } else {
+                    DetailView::Clone(row)
+                }
+            }
             /*DetailView::Info(_) => {
                 self.clone_name.clear();
-                self.detail_view = DetailView::Clone(row);
+                DetailView::Clone(row);
             }*/
             DetailView::None => {
                 self.clone_name.clear();
-                self.detail_view = DetailView::Clone(row);
+                DetailView::Clone(row)
             }
-        }
+        };
 
         Command::none()
     }
