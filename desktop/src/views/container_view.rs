@@ -69,7 +69,7 @@ fn list_item(c: &Container) -> ListItem {
     let mut cells: Vec<ListCell> = vec![
         ListCell::IconStatus("container.png", c.running),
         ListCell::TextButton(name, ACTION_EMPTY),
-        ListCell::TextButton(c.name.clone(), ACTION_EMPTY),
+        ListCell::TextButton(c.image.clone(), ACTION_EMPTY),
         ListCell::TextButton(c.status.clone(), ACTION_EMPTY),
         ListCell::IconButton(
             if c.running { "stop.png" } else { "play.png" },

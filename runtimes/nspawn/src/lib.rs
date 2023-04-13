@@ -1,10 +1,11 @@
 use std::{
     sync::{Arc, Mutex},
-    time::Duration,
+    time::{Duration, UNIX_EPOCH},
 };
 
 use anyhow::Result;
 use async_trait::async_trait;
+use chrono::{DateTime, Local};
 use container_core::{
     container::{Container, ContainerProvider},
     image::{Image, ImageProvider},
@@ -20,6 +21,7 @@ static DBUS_IFACE: &str = "/org/freedesktop/machine1";
 
 static DBUS_SYSTEMD_DEST: &str = "org.freedesktop.systemd1";
 static DBUS_SYSTEMD_IFACE: &str = "/org/freedesktop/systemd1";
+static DBUS_TIMEOUT_S: u64 = 10;
 
 struct Client {
     con: Arc<Mutex<Connection>>,
@@ -51,7 +53,7 @@ impl ImageProvider for Client {
         /*let guard = self.con.lock();
         match guard {
             Ok(guard) => {
-                let proxy = guard.with_proxy(DBUS_DEST, DBUS_IFACE, Duration::from_millis(5000));
+                let proxy = guard.with_proxy(DBUS_DEST, DBUS_IFACE, Duration::from_secs(DBUS_TIMEOUT_S));
                 use systemd_machine::OrgFreedesktopMachine1Manager;
 
                 let imgs = proxy.list_images()?;
@@ -70,9 +72,14 @@ impl ImageProvider for Client {
     }
 }
 
-fn read_image(proxy: &Proxy<&Connection>, name: &str) -> String {
+fn read_image(proxy: &Proxy<&Connection>, name: &str, is_machine: bool) -> String {
     use systemd_machine::OrgFreedesktopMachine1Manager;
-    let res = proxy.get_image_osrelease(&name);
+    let res = if is_machine {
+        proxy.get_machine_osrelease(&name)
+    } else {
+        proxy.get_image_osrelease(&name)
+    };
+
     if let Ok(dict) = res {
         let pretty = dict.get("PRETTY_NAME");
         if let Some(pretty) = pretty {
@@ -109,7 +116,8 @@ impl ContainerProvider for Client {
         let guard = self.con.lock();
         match guard {
             Ok(guard) => {
-                let proxy = guard.with_proxy(DBUS_DEST, DBUS_IFACE, Duration::from_millis(5000));
+                let proxy =
+                    guard.with_proxy(DBUS_DEST, DBUS_IFACE, Duration::from_secs(DBUS_TIMEOUT_S));
                 use systemd_machine::OrgFreedesktopMachine1Manager;
 
                 let imgs = proxy.list_images()?;
@@ -119,10 +127,18 @@ impl ContainerProvider for Client {
                 let containers: Vec<Container> = imgs
                     .into_iter()
                     .filter(|(n, _, _, _, _, _, _)| !n.starts_with('.') || n == ".host")
-                    .map(|(n, t, _ro, _created, _mtime, _size, _p)| {
+                    .map(|(n, _type, _ro, created, _mtime, _size, _p)| {
                         let found = machines.iter().find(|&e| e.0 == n);
-                        let img = read_image(&proxy, &n);
-                        Container::new(n, "".to_string(), img, found.is_some(), t)
+                        let img = read_image(&proxy, &n, found.is_some());
+                        let systime = UNIX_EPOCH + Duration::from_micros(created);
+                        let created: DateTime<Local> = systime.into();
+                        Container::new(
+                            n,
+                            "".to_string(),
+                            img,
+                            found.is_some(),
+                            created.format("%Y-%m-%d %H:%M").to_string(),
+                        )
                     })
                     .collect();
 
@@ -140,7 +156,7 @@ impl ContainerProvider for Client {
                 let proxy = guard.with_proxy(
                     DBUS_SYSTEMD_DEST,
                     DBUS_SYSTEMD_IFACE,
-                    Duration::from_millis(5000),
+                    Duration::from_secs(DBUS_TIMEOUT_S),
                 );
                 use systemd::OrgFreedesktopSystemd1Manager;
                 let service_name = generate_service_name(&id);
@@ -159,7 +175,7 @@ impl ContainerProvider for Client {
                 let proxy = guard.with_proxy(
                     DBUS_SYSTEMD_DEST,
                     DBUS_SYSTEMD_IFACE,
-                    Duration::from_millis(5000),
+                    Duration::from_secs(DBUS_TIMEOUT_S),
                 );
                 //use systemd_machine::OrgFreedesktopMachine1Manager;
                 //proxy.kill_machine(&id, "leader", SIGRTMIN + 4)?;
@@ -177,7 +193,8 @@ impl ContainerProvider for Client {
         let guard = self.con.lock();
         match guard {
             Ok(guard) => {
-                let proxy = guard.with_proxy(DBUS_DEST, DBUS_IFACE, Duration::from_millis(5000));
+                let proxy =
+                    guard.with_proxy(DBUS_DEST, DBUS_IFACE, Duration::from_secs(DBUS_TIMEOUT_S));
                 use systemd_machine::OrgFreedesktopMachine1Manager;
                 proxy.clone_image(&id, &new_name, false)?;
                 Ok(())
@@ -190,7 +207,8 @@ impl ContainerProvider for Client {
         let guard = self.con.lock();
         match guard {
             Ok(guard) => {
-                let proxy = guard.with_proxy(DBUS_DEST, DBUS_IFACE, Duration::from_millis(5000));
+                let proxy =
+                    guard.with_proxy(DBUS_DEST, DBUS_IFACE, Duration::from_secs(DBUS_TIMEOUT_S));
                 use systemd_machine::OrgFreedesktopMachine1Manager;
                 proxy.remove_image(&id)?;
                 Ok(())
