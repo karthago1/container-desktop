@@ -1,9 +1,13 @@
+use controls::icons;
 use iced::{theme, widget::row, Application, Command, Element, Settings, Subscription, Theme};
 use main_menu::{MainMenu, MainMenuItem};
 use message::{IndexedViewMessage, Message};
 use provider::Provider;
 use style::colors;
-use views::{IView, container_view::ContainerView, image_view::ImageView, volume_view::VolumeView, ViewMessage};
+use views::{
+    container_view::ContainerView, image_view::ImageView, volume_view::VolumeView, IView,
+    ViewMessage,
+};
 
 mod controls;
 mod main_menu;
@@ -29,13 +33,13 @@ impl Application for MainWindow {
 
     fn new(_flags: ()) -> (MainWindow, Command<Message>) {
         Provider::initialize();
-
+        icons::load_icons();
         let mut w = MainWindow {
             menu: MainMenu::new(vec![
-                MainMenuItem::new("Containers".to_string(), "container.png".to_string()),
-                MainMenuItem::new("Images".to_string(), "image.png".to_string()),
-                MainMenuItem::new("Volumes".to_string(), "settings.png".to_string()),
-                MainMenuItem::new("Settings".to_string(), "settings.png".to_string()),
+                MainMenuItem::new("Containers".to_string(), icons::ICON_CONTAINER),
+                MainMenuItem::new("Images".to_string(), icons::ICON_IMAGE),
+                MainMenuItem::new("Volumes".to_string(), icons::ICON_SETTINGS),
+                MainMenuItem::new("Settings".to_string(), icons::ICON_SETTINGS),
             ]),
             views: vec![
                 Box::<ContainerView>::default(),

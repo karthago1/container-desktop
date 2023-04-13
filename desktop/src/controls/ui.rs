@@ -2,29 +2,24 @@ use iced::{theme, widget};
 
 use crate::style;
 
-pub fn icon_button<'a, Message>(icon: &str) -> iced::widget::Button<'a, Message, iced::Renderer>
+pub fn icon_button<'a, Message>(icon: usize) -> iced::widget::Button<'a, Message, iced::Renderer>
 where
     Message: 'a,
 {
-    widget::button(widget::image(format!(
-        "{}/icons/{icon}",
-        env!("CARGO_MANIFEST_DIR")
-    )))
-    .style(theme::Button::Custom(Box::<style::Button>::default()))
+    let handle = super::icons::icon(icon);
+    widget::button(widget::image(handle.clone()))
+        .style(theme::Button::Custom(Box::<style::Button>::default()))
 }
 
 pub fn icon_status<'a, Message>(
-    icon: &str,
+    icon: usize,
     active: bool,
 ) -> iced::widget::Container<'a, Message, iced::Renderer>
 where
     Message: 'a,
 {
-    widget::container(widget::image(format!(
-        "{}/icons/{icon}",
-        env!("CARGO_MANIFEST_DIR")
-    )))
-    .style(if active {
+    let handle = super::icons::icon(icon);
+    widget::container(widget::image(handle.clone())).style(if active {
         iced::theme::Container::Custom(Box::new(style::ContainerBackground(*style::colors::ACCENT)))
     } else {
         iced::theme::Container::Transparent

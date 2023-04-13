@@ -5,6 +5,7 @@ use iced::Command;
 
 use crate::{
     controls::{
+        icons,
         list_item::{ListCell, ListItem, ListItemMsg},
         list_view::{ListMsg, ListView},
         loading_view,
@@ -67,19 +68,26 @@ fn list_item(c: &Container) -> ListItem {
     };
 
     let mut cells: Vec<ListCell> = vec![
-        ListCell::IconStatus("container.png", c.running),
+        ListCell::IconStatus(icons::ICON_CONTAINER, c.running),
         ListCell::TextButton(name, ACTION_EMPTY),
         ListCell::TextButton(c.image.clone(), ACTION_EMPTY),
         ListCell::TextButton(c.status.clone(), ACTION_EMPTY),
         ListCell::IconButton(
-            if c.running { "stop.png" } else { "play.png" },
+            if c.running {
+                icons::ICON_STOP
+            } else {
+                icons::ICON_PLAY
+            },
             ACTION_STOP_START,
         ),
-        ListCell::IconButton("delete.png", ACTION_DELETE),
+        ListCell::IconButton(icons::ICON_DELETE, ACTION_DELETE),
     ];
 
     if Provider::global().is_clone_supported() {
-        cells.push(ListCell::IconButton("clone.png", ACTION_SHOW_CLONE_DIALOG));
+        cells.push(ListCell::IconButton(
+            icons::ICON_CLONE,
+            ACTION_SHOW_CLONE_DIALOG,
+        ));
     }
 
     ListItem(cells)
@@ -181,7 +189,7 @@ impl ContainerView {
                                     ListMsg::Item(row, ListItemMsg::TextChanged(0, value))
                                 }
                             ),
-                            icon_button("done.png").on_press(ListMsg::Item(
+                            icon_button(icons::ICON_DONE).on_press(ListMsg::Item(
                                 row,
                                 ListItemMsg::Clicked(0, ACTION_CLONE)
                             ))
@@ -206,7 +214,7 @@ impl ContainerView {
     }
 
     fn set_busy_cell(&mut self, row: usize, col: usize) {
-        let new_cell = ListCell::IconStatus("hourglass.png", true);
+        let new_cell = ListCell::IconStatus(icons::ICON_HOURGLASS, true);
         self.replace_cell(row, col, new_cell.clone());
         self.replace_cell(row, COLUMN_INDEX_STATUS, new_cell);
     }
@@ -327,12 +335,12 @@ impl ContainerView {
         self.replace_cell(
             row,
             COLUMN_INDEX_DELETE,
-            ListCell::IconButton("delete.png", ACTION_DELETE),
+            ListCell::IconButton(icons::ICON_DELETE, ACTION_DELETE),
         );
         self.replace_cell(
             row,
             COLUMN_INDEX_STATUS,
-            ListCell::IconStatus("container.png", self.containers[row].running),
+            ListCell::IconStatus(icons::ICON_CONTAINER, self.containers[row].running),
         );
     }
 
@@ -342,14 +350,18 @@ impl ContainerView {
             row,
             COLUMN_INDEX_PLAY_STOP,
             ListCell::IconButton(
-                if running { "stop.png" } else { "play.png" },
+                if running {
+                    icons::ICON_STOP
+                } else {
+                    icons::ICON_PLAY
+                },
                 ACTION_STOP_START,
             ),
         );
         self.replace_cell(
             row,
             COLUMN_INDEX_STATUS,
-            ListCell::IconStatus("container.png", running),
+            ListCell::IconStatus(icons::ICON_CONTAINER, running),
         );
     }
 

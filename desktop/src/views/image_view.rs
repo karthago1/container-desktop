@@ -4,6 +4,7 @@ use std::vec;
 
 use crate::{
     controls::{
+        icons,
         list_item::{ListCell, ListItem},
         list_view::{ListMsg, ListView},
         loading_view,
@@ -26,10 +27,10 @@ enum ImageMsg {
 
 fn list_item(name: String, image: String, status: bool) -> ListItem {
     ListItem(vec![
-        ListCell::IconStatus("image.png", status),
+        ListCell::IconStatus(icons::ICON_IMAGE, status),
         ListCell::TextButton(name, 0),
         ListCell::TextButton(image, 0),
-        ListCell::IconButton("delete.png", 0),
+        ListCell::IconButton(icons::ICON_DELETE, 0),
     ])
 }
 

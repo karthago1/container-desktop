@@ -20,9 +20,9 @@ pub enum ListItemMsg {
 
 #[derive(Debug, Clone)]
 pub enum ListCell {
-    IconStatus(&'static str, bool),
+    IconStatus(usize, bool),
     TextButton(String, u32),
-    IconButton(&'static str, u32),
+    IconButton(usize, u32),
 }
 
 impl ListItem {
@@ -35,7 +35,7 @@ impl ListItem {
         let e = &self.0[index];
 
         match e {
-            ListCell::IconStatus(icon, status) => icon_status(icon, *status)
+            ListCell::IconStatus(icon, status) => icon_status(*icon, *status)
                 .width(width)
                 .height(height)
                 .into(),
@@ -51,7 +51,7 @@ impl ListItem {
             .on_press(ListItemMsg::Clicked(index, *action))
             .into(),
 
-            ListCell::IconButton(icon, action) => icon_button(icon)
+            ListCell::IconButton(icon, action) => icon_button(*icon)
                 .width(width)
                 .height(height)
                 .on_press(ListItemMsg::Clicked(index, *action))

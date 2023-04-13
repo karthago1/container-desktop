@@ -5,11 +5,11 @@ use iced::{
     Element, Length,
 };
 
-use crate::style;
+use crate::{controls::icons, style};
 
 pub struct MainMenuItem {
     pub text: String,
-    pub icon: String,
+    pub icon: usize,
     pub badge: Option<i32>,
 }
 
@@ -27,7 +27,7 @@ pub enum MainMenuMessage {
 }
 
 impl MainMenuItem {
-    pub fn new(text: String, icon: String) -> Self {
+    pub fn new(text: String, icon: usize) -> Self {
         Self {
             text,
             icon,
@@ -59,16 +59,9 @@ impl MainMenu {
                 .enumerate()
                 .map(|(index, item)| {
                     let mut row = row![
-                        container(
-                            image(format!(
-                                "{}/icons/{}",
-                                env!("CARGO_MANIFEST_DIR"),
-                                item.icon
-                            ))
+                        container(image(icons::icon(item.icon).clone()).height(Length::Fill))
                             .height(Length::Fill)
-                        )
-                        .height(Length::Fill)
-                        .padding([0, 4]),
+                            .padding([0, 4]),
                         text(&item.text)
                             .vertical_alignment(Vertical::Center)
                             .width(Length::Fill),
