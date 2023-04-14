@@ -6,4 +6,5 @@ pub mod image;
 
 pub trait CorePlugin: ImageProvider + ContainerProvider {
     fn is_clone_supported(&self) -> bool;
+    fn get_name(&self) -> String;
 }

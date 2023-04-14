@@ -14,6 +14,10 @@ impl CorePlugin for Simulation {
     fn is_clone_supported(&self) -> bool {
         false
     }
+
+    fn get_name(&self) -> String {
+        "Simulator".to_string()
+    }
 }
 
 #[async_trait]
@@ -99,8 +103,7 @@ impl ContainerProvider for Simulation {
     async fn clone_container(&self, _id: String, _new_name: String) -> Result<()> {
         Ok(())
     }
-    async fn remove_container(&self, _id: String) -> Result<()>
-    {
+    async fn remove_container(&self, _id: String) -> Result<()> {
         Ok(())
     }
 }

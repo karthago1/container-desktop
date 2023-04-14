@@ -1,20 +1,18 @@
-use container_core::image::Image;
+use container_core::{image::Image, CorePlugin};
 use iced::Command;
 use std::vec;
 
-use crate::{
-    controls::{
-        icons,
-        list_item::{ListCell, ListItem},
-        list_view::{ListMsg, ListView},
-        loading_view,
-    },
-    provider::Provider,
-};
+use crate::{controls::{
+    icons,
+    list_item::{ListCell, ListItem},
+    list_view::{ListMsg, ListView},
+    loading_view,
+}, provider::Provider};
 
 use super::{view_result, IView, ViewError, ViewMessage, ViewResult, ViewState};
 
 pub struct ImageView {
+    plugin_index: usize,
     list_view: ListView,
     view_state: ViewState,
 }
@@ -48,20 +46,6 @@ fn map_image(imgs: &[Image]) -> Vec<ListItem> {
             )
         })
         .collect()
-}
-
-impl Default for ImageView {
-    fn default() -> Self {
-        Self {
-            list_view: ListView::new(vec![
-                iced::Length::Shrink,
-                iced::Length::FillPortion(2),
-                iced::Length::Fill,
-                iced::Length::Shrink,
-            ]),
-            view_state: ViewState::default(),
-        }
-    }
 }
 
 impl IView for ImageView {
@@ -122,10 +106,27 @@ impl IView for ImageView {
 }
 
 impl ImageView {
+    pub fn new(plugin_index : usize) -> Self {
+        Self {
+            plugin_index,
+            list_view: ListView::new(vec![
+                iced::Length::Shrink,
+                iced::Length::FillPortion(2),
+                iced::Length::Fill,
+                iced::Length::Shrink,
+            ]),
+            view_state: ViewState::default(),
+        }
+    }
+
     fn create_load_cmd(&self) -> Command<ViewMessage> {
-        Command::perform(Provider::global().list_images(), |imgs| {
+        Command::perform(self.plugin().list_images(), |imgs| {
             ViewMessage::Loaded(Box::new(ImageMsg::NewImages(view_result!(imgs))))
         })
+    }
+
+    fn plugin(&self) -> &'static dyn CorePlugin {
+        Provider::global(self.plugin_index)
     }
 
     fn init(&mut self) -> Command<ViewMessage> {

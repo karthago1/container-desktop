@@ -1,6 +1,6 @@
 use std::{any::Any, vec};
 
-use container_core::container::Container;
+use container_core::{container::Container, CorePlugin};
 use iced::Command;
 
 use crate::{
@@ -19,6 +19,7 @@ use crate::{
 use super::ViewResult;
 
 pub struct ContainerView {
+    plugin_index: usize,
     list_view: ListView,
     view_state: ViewState,
     containers: Vec<Container>,
@@ -58,69 +59,6 @@ macro_rules! container_msg {
     ($msg:expr) => {
         ViewMessage::Loaded(Box::new($msg))
     };
-}
-
-fn list_item(c: &Container) -> ListItem {
-    let name = if c.name.is_empty() {
-        c.id.clone()
-    } else {
-        c.name.clone()
-    };
-
-    let mut cells: Vec<ListCell> = vec![
-        ListCell::IconStatus(icons::ICON_CONTAINER, c.running),
-        ListCell::TextButton(name, ACTION_EMPTY),
-        ListCell::TextButton(c.image.clone(), ACTION_EMPTY),
-        ListCell::TextButton(c.status.clone(), ACTION_EMPTY),
-        ListCell::IconButton(
-            if c.running {
-                icons::ICON_STOP
-            } else {
-                icons::ICON_PLAY
-            },
-            ACTION_STOP_START,
-        ),
-        ListCell::IconButton(icons::ICON_DELETE, ACTION_DELETE),
-    ];
-
-    if Provider::global().is_clone_supported() {
-        cells.push(ListCell::IconButton(
-            icons::ICON_CLONE,
-            ACTION_SHOW_CLONE_DIALOG,
-        ));
-    }
-
-    ListItem(cells)
-}
-
-fn map_container(list: &[Container]) -> Vec<ListItem> {
-    list.iter().map(list_item).collect()
-}
-
-impl Default for ContainerView {
-    fn default() -> Self {
-        let mut item_lengths: Vec<iced::Length> = vec![
-            iced::Length::Shrink,
-            iced::Length::FillPortion(4),
-            iced::Length::FillPortion(10),
-            iced::Length::FillPortion(5),
-            iced::Length::Shrink,
-            iced::Length::Shrink,
-        ];
-
-        if Provider::global().is_clone_supported() {
-            item_lengths.push(iced::Length::Shrink);
-        }
-
-        Self {
-            list_view: ListView::new(item_lengths),
-            view_state: ViewState::default(),
-            containers: vec![],
-            detail_view: DetailView::None,
-            clone_name: "".to_string(),
-            error: None,
-        }
-    }
 }
 
 impl IView for ContainerView {
@@ -166,8 +104,37 @@ impl IView for ContainerView {
 }
 
 impl ContainerView {
+    pub fn new(plugin_index: usize) -> Self {
+        let mut item_lengths: Vec<iced::Length> = vec![
+            iced::Length::Shrink,
+            iced::Length::FillPortion(4),
+            iced::Length::FillPortion(10),
+            iced::Length::FillPortion(5),
+            iced::Length::Shrink,
+            iced::Length::Shrink,
+        ];
+
+        if Provider::global(plugin_index).is_clone_supported() {
+            item_lengths.push(iced::Length::Shrink);
+        }
+
+        Self {
+            plugin_index,
+            list_view: ListView::new(item_lengths),
+            view_state: ViewState::default(),
+            containers: vec![],
+            detail_view: DetailView::None,
+            clone_name: "".to_string(),
+            error: None,
+        }
+    }
+
+    fn plugin(&self) -> &'static dyn CorePlugin {
+        Provider::global(self.plugin_index)
+    }
+
     fn init(&mut self) -> Command<ViewMessage> {
-        Command::perform(Provider::global().list_containers(), |imgs| {
+        Command::perform(self.plugin().list_containers(), |imgs| {
             let res = view_result!(imgs);
             container_msg!(ContainerMsg::NewContainers(res))
         })
@@ -224,11 +191,11 @@ impl ContainerView {
         let container = &self.containers[row];
         let id = container.id.clone();
         if container.running {
-            Command::perform(Provider::global().stop_container(id), move |e| {
+            Command::perform(self.plugin().stop_container(id), move |e| {
                 container_msg!(ContainerMsg::Stopped(row, view_result!(e)))
             })
         } else {
-            Command::perform(Provider::global().start_container(id), move |e| {
+            Command::perform(self.plugin().start_container(id), move |e| {
                 container_msg!(ContainerMsg::Started(row, view_result!(e)))
             })
         }
@@ -259,7 +226,8 @@ impl ContainerView {
     fn clone_cmd(&self, row: usize) -> Command<ViewMessage> {
         let container = &self.containers[row];
         Command::perform(
-            Provider::global().clone_container(container.id.clone(), self.clone_name.clone()),
+            self.plugin()
+                .clone_container(container.id.clone(), self.clone_name.clone()),
             |e| container_msg!(ContainerMsg::Cloned(view_result!(e))),
         )
     }
@@ -268,7 +236,7 @@ impl ContainerView {
         self.set_busy_cell(row, col);
         let container = &self.containers[row];
         Command::perform(
-            Provider::global().remove_container(container.id.clone()),
+            self.plugin().remove_container(container.id.clone()),
             move |e| container_msg!(ContainerMsg::Deleted(row, view_result!(e))),
         )
     }
@@ -365,6 +333,43 @@ impl ContainerView {
         );
     }
 
+    fn list_item(&self, c: &Container) -> ListItem {
+        let name = if c.name.is_empty() {
+            c.id.clone()
+        } else {
+            c.name.clone()
+        };
+
+        let mut cells: Vec<ListCell> = vec![
+            ListCell::IconStatus(icons::ICON_CONTAINER, c.running),
+            ListCell::TextButton(name, ACTION_EMPTY),
+            ListCell::TextButton(c.image.clone(), ACTION_EMPTY),
+            ListCell::TextButton(c.status.clone(), ACTION_EMPTY),
+            ListCell::IconButton(
+                if c.running {
+                    icons::ICON_STOP
+                } else {
+                    icons::ICON_PLAY
+                },
+                ACTION_STOP_START,
+            ),
+            ListCell::IconButton(icons::ICON_DELETE, ACTION_DELETE),
+        ];
+
+        if self.plugin().is_clone_supported() {
+            cells.push(ListCell::IconButton(
+                icons::ICON_CLONE,
+                ACTION_SHOW_CLONE_DIALOG,
+            ));
+        }
+
+        ListItem(cells)
+    }
+
+    fn map_container(&self, list: &[Container]) -> Vec<ListItem> {
+        list.iter().map(|e| self.list_item(e)).collect()
+    }
+
     fn diff_apply(&mut self, list: Vec<Container>) -> Command<ViewMessage> {
         self.view_state = ViewState::Loaded;
         let mut new_changes = false;
@@ -384,7 +389,7 @@ impl ContainerView {
             }
         }
 
-        let items = map_container(&list);
+        let items = self.map_container(&list);
         self.containers = list;
         self.list_view.update(ListMsg::NewItems(items));
         let badge = self.containers.len() as i32;

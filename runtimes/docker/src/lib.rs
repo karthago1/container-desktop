@@ -32,6 +32,10 @@ impl CorePlugin for DockerClient {
     fn is_clone_supported(&self) -> bool {
         false
     }
+
+    fn get_name(&self) -> String {
+        "Docker".to_string()
+    }
 }
 
 #[async_trait]

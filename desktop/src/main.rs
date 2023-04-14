@@ -4,10 +4,7 @@ use main_menu::{MainMenu, MainMenuItem};
 use message::{IndexedViewMessage, Message};
 use provider::Provider;
 use style::colors;
-use views::{
-    container_view::ContainerView, image_view::ImageView, volume_view::VolumeView, IView,
-    ViewMessage,
-};
+use views::{container_view::ContainerView, volume_view::VolumeView, IView, ViewMessage};
 
 mod controls;
 mod main_menu;
@@ -32,21 +29,33 @@ impl Application for MainWindow {
     type Flags = ();
 
     fn new(_flags: ()) -> (MainWindow, Command<Message>) {
-        Provider::initialize();
         icons::load_icons();
+        Provider::initialize();
+
+        let mut menus: Vec<MainMenuItem> = Provider::providers()
+            .iter()
+            .map(|p| MainMenuItem::new(p.get_name().to_string(), icons::ICON_CONTAINER))
+            .collect();
+
+        let mut views: Vec<Box<dyn IView>> = (0..Provider::providers().len())
+            .map(|i| Box::new(ContainerView::new(i)) as Box<dyn IView>)
+            .collect();
+
+        menus.push(MainMenuItem::new(
+            "Volumes".to_string(),
+            icons::ICON_SETTINGS,
+        ));
+        menus.push(MainMenuItem::new(
+            "Settings".to_string(),
+            icons::ICON_SETTINGS,
+        ));
+
+        views.push(Box::<VolumeView>::default());
+        views.push(Box::<VolumeView>::default());
+
         let mut w = MainWindow {
-            menu: MainMenu::new(vec![
-                MainMenuItem::new("Containers".to_string(), icons::ICON_CONTAINER),
-                MainMenuItem::new("Images".to_string(), icons::ICON_IMAGE),
-                MainMenuItem::new("Volumes".to_string(), icons::ICON_SETTINGS),
-                MainMenuItem::new("Settings".to_string(), icons::ICON_SETTINGS),
-            ]),
-            views: vec![
-                Box::<ContainerView>::default(),
-                Box::<ImageView>::default(),
-                Box::<VolumeView>::default(),
-                Box::<VolumeView>::default(),
-            ],
+            menu: MainMenu::new(menus),
+            views,
         };
 
         let cmd = w

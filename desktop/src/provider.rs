@@ -13,14 +13,14 @@ static PLUGIN_ENTRY_FUNCTION: &[u8] = b"initialize\0";
 
 #[derive(Debug)]
 pub struct Provider {
-    provider: Box<dyn CorePlugin>,
+    providers: Vec<Box<dyn CorePlugin>>,
     _libs: Vec<Library>,
 }
 
-fn get_plugin(dir: &Path) -> PathBuf {
+fn get_plugins(dir: &Path) -> Vec<PathBuf> {
     fs::read_dir(dir)
         .unwrap()
-        .find(|f| match f {
+        .filter(|f| match f {
             Ok(f) => {
                 f.file_type().unwrap().is_file()
                     && f.file_name().to_str().unwrap().ends_with("_client.so")
@@ -28,16 +28,23 @@ fn get_plugin(dir: &Path) -> PathBuf {
             Err(_) => false,
         })
         .map(|f| f.unwrap().path())
-        .unwrap()
+        .collect()
 }
 
 impl Provider {
-    pub fn global() -> &'static dyn CorePlugin {
+    pub fn global(index: usize) -> &'static dyn CorePlugin {
         INSTANCE
             .get()
             .expect("Provider is not initialized")
-            .provider
+            .providers[index]
             .as_ref()
+    }
+
+    pub fn providers() -> &'static [Box<dyn CorePlugin>] {
+        &INSTANCE
+            .get()
+            .expect("Provider is not initialized")
+            .providers
     }
 
     pub fn initialize() {
@@ -45,29 +52,31 @@ impl Provider {
         let exe_dir = exe.parent().unwrap();
 
         println!("scanning {:?}", exe_dir);
-        let lib_path = get_plugin(exe_dir);
-
-        println!("load {}", lib_path.display());
+        let lib_paths = get_plugins(exe_dir);
 
         let mut libs = Vec::<Library>::new();
-        let plugin = unsafe {
-            let lib = libloading::Library::new(lib_path).unwrap();
+        let mut providers = Vec::<Box<dyn CorePlugin>>::new();
 
-            let res = {
-                let plugin_entry_fn: libloading::Symbol<
-                    unsafe extern "C" fn() -> Box<dyn CorePlugin>,
-                > = lib.get(PLUGIN_ENTRY_FUNCTION).unwrap();
-                plugin_entry_fn()
-            };
+        for lib_path in lib_paths {
+            println!("load {}", lib_path.display());
+            unsafe {
+                let lib = libloading::Library::new(lib_path).unwrap();
 
-            libs.push(lib);
+                let res = {
+                    let plugin_entry_fn: libloading::Symbol<
+                        unsafe extern "C" fn() -> Box<dyn CorePlugin>,
+                    > = lib.get(PLUGIN_ENTRY_FUNCTION).unwrap();
+                    plugin_entry_fn()
+                };
 
-            res
-        };
+                libs.push(lib);
+                providers.push(res);
+            }
+        }
 
         INSTANCE
             .set(Provider {
-                provider: plugin,
+                providers,
                 _libs: libs,
             })
             .unwrap();

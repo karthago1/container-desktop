@@ -45,6 +45,10 @@ impl CorePlugin for Client {
     fn is_clone_supported(&self) -> bool {
         true
     }
+
+    fn get_name(&self) -> String {
+        "Systemd".to_string()
+    }
 }
 
 #[async_trait]
