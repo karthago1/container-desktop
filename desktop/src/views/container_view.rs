@@ -12,7 +12,6 @@ use crate::{
         ui::icon_button,
     },
     provider::Provider,
-    style::ContainerBackground,
     views::{view_result, IView, ViewError, ViewMessage, ViewState},
 };
 
@@ -107,7 +106,7 @@ impl ContainerView {
     pub fn new(plugin_index: usize) -> Self {
         let mut item_lengths: Vec<iced::Length> = vec![
             iced::Length::Shrink,
-            iced::Length::FillPortion(4),
+            iced::Length::FillPortion(5),
             iced::Length::FillPortion(10),
             iced::Length::FillPortion(5),
             iced::Length::Shrink,
@@ -164,9 +163,7 @@ impl ContainerView {
                         .width(300)
                         .height(40),
                     )
-                    .style(iced::theme::Container::Custom(Box::new(
-                        ContainerBackground(*crate::style::colors::PRIMARY),
-                    )))
+                    .style(iced::theme::Container::Box)
                     .center_x()
                     .width(iced::Length::Fill)
                     .into(),

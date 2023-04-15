@@ -6,7 +6,7 @@ use iced::{
 
 use crate::{
     controls::list_item::{ListItem, ListItemMsg},
-    style,
+    style::{self, colors, ContainerBackground},
 };
 
 pub struct ListView {
@@ -77,7 +77,9 @@ impl ListView {
         ))
         .width(Length::Fill)
         .height(Length::Fill)
-        .style(theme::Container::Box)
+        .style(theme::Container::Custom(Box::new(ContainerBackground(
+            *colors::PRIMARY,
+        ))))
         .into()
     }
 
