@@ -93,6 +93,13 @@ impl Application for MainWindow {
                     })
                 }
             }
+            Message::Update => {
+                let msg = ViewMessage::Update;
+                let view_index = self.menu.selected_index;
+                self.views[view_index]
+                    .update(msg)
+                    .map(move |new_msg| Message::View(IndexedViewMessage::new(view_index, new_msg)))
+            }
         }
     }
 
@@ -117,7 +124,6 @@ impl Application for MainWindow {
     }
 
     fn subscription(&self) -> Subscription<Message> {
-        iced::time::every(std::time::Duration::from_millis(1500))
-            .map(|_| Message::View(IndexedViewMessage::new(0, ViewMessage::Update)))
+        iced::time::every(std::time::Duration::from_millis(1500)).map(|_| Message::Update)
     }
 }
