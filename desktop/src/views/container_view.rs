@@ -148,9 +148,7 @@ impl ContainerView {
                 Some(
                     iced::widget::container(
                         iced::widget::row![
-                            iced::widget::text_input(
-                                "Clone Name",
-                                &self.clone_name,
+                            iced::widget::text_input("Clone Name", &self.clone_name).on_input(
                                 move |value| {
                                     ListMsg::Item(row, ListItemMsg::TextChanged(0, value))
                                 }
