@@ -49,6 +49,10 @@ impl CorePlugin for Client {
     fn get_name(&self) -> String {
         "Systemd".to_string()
     }
+
+    fn is_image_provide_supported(&self) -> bool {
+        false
+    }
 }
 
 #[async_trait]
@@ -73,6 +77,11 @@ impl ImageProvider for Client {
             Err(err) => Err(anyhow::anyhow!(err.to_string())),
         }*/
         Ok(vec![])
+    }
+
+    async fn export_image(&self, id: String, path: String) -> Result<()> {
+        println!("export image {id} to {path}");
+        Ok(())
     }
 }
 

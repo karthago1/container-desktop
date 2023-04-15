@@ -4,7 +4,10 @@ use main_menu::{MainMenu, MainMenuItem};
 use message::{IndexedViewMessage, Message};
 use provider::Provider;
 use style::colors;
-use views::{container_view::ContainerView, volume_view::VolumeView, IView, ViewMessage};
+use views::{
+    container_view::ContainerView, image_view::ImageView, volume_view::VolumeView, IView,
+    ViewMessage,
+};
 
 mod controls;
 mod main_menu;
@@ -38,14 +41,24 @@ impl Application for MainWindow {
         icons::load_icons();
         Provider::initialize();
 
-        let mut menus: Vec<MainMenuItem> = Provider::providers()
-            .iter()
-            .map(|p| MainMenuItem::new(p.get_name().to_string(), icons::ICON_CONTAINER))
-            .collect();
+        let mut menus: Vec<MainMenuItem> = Vec::with_capacity(Provider::providers().len());
+        let mut views: Vec<Box<dyn IView>> = Vec::with_capacity(menus.capacity());
 
-        let mut views: Vec<Box<dyn IView>> = (0..Provider::providers().len())
-            .map(|i| Box::new(ContainerView::new(i)) as Box<dyn IView>)
-            .collect();
+        for (index, p) in Provider::providers().iter().enumerate() {
+            menus.push(MainMenuItem::new(
+                p.get_name().to_string(),
+                icons::ICON_CONTAINER,
+            ));
+            views.push(Box::new(ContainerView::new(index)) as Box<dyn IView>);
+
+            if p.is_image_provide_supported() {
+                menus.push(MainMenuItem::new(
+                    p.get_name().to_string(),
+                    icons::ICON_IMAGE,
+                ));
+                views.push(Box::new(ImageView::new(index)) as Box<dyn IView>);
+            }
+        }
 
         menus.push(MainMenuItem::new(
             "Volumes".to_string(),

@@ -15,7 +15,14 @@ macro_rules! view_result {
     };
 }
 
+macro_rules! view_msg {
+    ($msg:expr) => {
+        ViewMessage::Loaded(Box::new($msg))
+    };
+}
+
 pub(crate) use view_result;
+pub(crate) use view_msg;
 
 #[derive(Debug)]
 pub enum ViewMessage {

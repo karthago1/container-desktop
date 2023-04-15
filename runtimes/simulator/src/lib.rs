@@ -5,7 +5,7 @@ use container_core::{
     image::{Image, ImageProvider},
     CorePlugin,
 };
-use std::{future, thread, time};
+use std::future;
 
 #[derive(Default, Debug)]
 pub struct Simulation;
@@ -18,12 +18,14 @@ impl CorePlugin for Simulation {
     fn get_name(&self) -> String {
         "Simulator".to_string()
     }
+    fn is_image_provide_supported(&self) -> bool {
+        true
+    }
 }
 
 #[async_trait]
 impl ImageProvider for Simulation {
     async fn list_images(&self) -> Result<Vec<Image>> {
-        thread::sleep(time::Duration::from_secs(1));
         future::ready(Ok::<Vec<Image>, anyhow::Error>(vec![
             Image::new(
                 "sha256:ea49d6ddc21b6ca2e00b002e7f254325df0ff7eb1a9eb8a9a15ad151eda39be0"
@@ -57,6 +59,10 @@ impl ImageProvider for Simulation {
             ),
         ]))
         .await
+    }
+
+    async fn export_image(&self, _id: String, _path: String) -> Result<()> {
+        Ok(())
     }
 }
 

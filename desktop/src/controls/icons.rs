@@ -12,6 +12,7 @@ pub static ICON_IMAGE: usize = 5;
 pub static ICON_PLAY: usize = 6;
 pub static ICON_SETTINGS: usize = 7;
 pub static ICON_STOP: usize = 8;
+pub static ICON_SAVE_AS: usize = 9;
 
 const ICON_BYTES: &[&'static [u8]] = &[
     include_bytes!("../../icons/clone.png"),
@@ -23,6 +24,7 @@ const ICON_BYTES: &[&'static [u8]] = &[
     include_bytes!("../../icons/play.png"),
     include_bytes!("../../icons/settings.png"),
     include_bytes!("../../icons/stop.png"),
+    include_bytes!("../../icons/save-as.png"),
 ];
 
 pub fn icon(index: usize) -> &'static image::Handle {

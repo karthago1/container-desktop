@@ -1,3 +1,5 @@
+use std::{fs::File, io::Write};
+
 use anyhow::Result;
 use async_trait::async_trait;
 use bollard::{
@@ -12,7 +14,7 @@ use container_core::{
     image::{Image, ImageProvider},
     CorePlugin,
 };
-use futures_util::Future;
+use futures_util::{Future, StreamExt};
 use tokio::{runtime::Runtime, sync::OnceCell};
 
 #[derive(Debug)]
@@ -38,6 +40,10 @@ impl CorePlugin for DockerClient {
     fn get_name(&self) -> String {
         "Docker".to_string()
     }
+
+    fn is_image_provide_supported(&self) -> bool {
+        true
+    }
 }
 
 #[async_trait]
@@ -57,6 +63,22 @@ impl ImageProvider for DockerClient {
                 Image::new(e.id, name, e.size as usize)
             })
             .collect())
+    }
+
+    async fn export_image(&self, id: String, path: String) -> Result<()> {
+        println!("export image {id} to {path}");
+        let mut stream = self.docker.export_image(&id);
+
+        let mut file = File::create(path)?;
+
+        while let Some(b) = tokio_run(stream.next()) {
+            match b {
+                Ok(b) => file.write_all(&b)?,
+                Err(err) => return Err(err.into()),
+            }
+        }
+
+        Ok(())
     }
 }
 
@@ -136,6 +158,7 @@ impl ContainerProvider for DockerClient {
             self.docker
                 .remove_container(&id, None::<RemoveContainerOptions>),
         )?;
+
         Ok(())
     }
 }

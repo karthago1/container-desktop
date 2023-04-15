@@ -19,4 +19,5 @@ impl Image {
 #[async_trait]
 pub trait ImageProvider: Send + Sync + Debug {
     async fn list_images(&self) -> Result<Vec<Image>>;
+    async fn export_image(&self, id: String, path: String) -> Result<()>;
 }

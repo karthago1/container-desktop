@@ -12,7 +12,7 @@ use crate::{
         ui::icon_button,
     },
     provider::Provider,
-    views::{view_result, IView, ViewError, ViewMessage, ViewState},
+    views::{view_result, IView, ViewError, ViewMessage, ViewState, view_msg},
 };
 
 use super::ViewResult;
@@ -54,12 +54,6 @@ static ACTION_CLONE: u32 = 3;
 static ACTION_SHOW_CLONE_DIALOG: u32 = 4;
 static ACTION_DELETE: u32 = 5;
 
-macro_rules! container_msg {
-    ($msg:expr) => {
-        ViewMessage::Loaded(Box::new($msg))
-    };
-}
-
 impl IView for ContainerView {
     fn view(&self) -> iced::Element<ViewMessage> {
         match self.view_state {
@@ -80,7 +74,7 @@ impl IView for ContainerView {
                     None => content,
                 };
 
-                result.map(|msg| container_msg!(msg))
+                result.map(|msg| view_msg!(msg))
             }
         }
     }
@@ -135,7 +129,7 @@ impl ContainerView {
     fn init(&mut self) -> Command<ViewMessage> {
         Command::perform(self.plugin().list_containers(), |imgs| {
             let res = view_result!(imgs);
-            container_msg!(ContainerMsg::NewContainers(res))
+            view_msg!(ContainerMsg::NewContainers(res))
         })
     }
 
@@ -187,11 +181,11 @@ impl ContainerView {
         let id = container.id.clone();
         if container.running {
             Command::perform(self.plugin().stop_container(id), move |e| {
-                container_msg!(ContainerMsg::Stopped(row, view_result!(e)))
+                view_msg!(ContainerMsg::Stopped(row, view_result!(e)))
             })
         } else {
             Command::perform(self.plugin().start_container(id), move |e| {
-                container_msg!(ContainerMsg::Started(row, view_result!(e)))
+                view_msg!(ContainerMsg::Started(row, view_result!(e)))
             })
         }
     }
@@ -223,7 +217,7 @@ impl ContainerView {
         Command::perform(
             self.plugin()
                 .clone_container(container.id.clone(), self.clone_name.clone()),
-            |e| container_msg!(ContainerMsg::Cloned(view_result!(e))),
+            |e| view_msg!(ContainerMsg::Cloned(view_result!(e))),
         )
     }
 
@@ -232,7 +226,7 @@ impl ContainerView {
         let container = &self.containers[row];
         Command::perform(
             self.plugin().remove_container(container.id.clone()),
-            move |e| container_msg!(ContainerMsg::Deleted(row, view_result!(e))),
+            move |e| view_msg!(ContainerMsg::Deleted(row, view_result!(e))),
         )
     }
 
