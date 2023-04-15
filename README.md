@@ -7,6 +7,7 @@ It is planned to support **docker** and **systemd-nspawn** container runtimes
 
 ## Features
 - [x] Docker
-- [ ] systemd-nspawn
-- [x] start/stop containers
+- [x] systemd-nspawn
+- [x] clone container (only nspawn)
+- [x] list/start/stop containers
 - [ ] create / remove container and images
