@@ -18,7 +18,12 @@ pub fn icon(index: usize) -> &'static image::Handle {
 }
 
 pub fn load_icons() {
-    let dir = env!("CARGO_MANIFEST_DIR");
+    let dir = if cfg!(target_arch = "wasm32") {
+        "icons/".to_string()
+    } else {
+        format!("{}/icons/", env!("CARGO_MANIFEST_DIR"))
+    };
+
     let icon_names = [
         "clone.png",
         "container.png",
@@ -31,6 +36,6 @@ pub fn load_icons() {
         "stop.png",
     ];
 
-    let icons = icon_names.map(|e| image::Handle::from_path(format!("{}/icons/{e}", dir)));
+    let icons = icon_names.map(|e| image::Handle::from_path(format!("{dir}{e}")));
     ICONS.set(icons).unwrap();
 }

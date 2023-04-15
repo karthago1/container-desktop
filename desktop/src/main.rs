@@ -9,9 +9,15 @@ use views::{container_view::ContainerView, volume_view::VolumeView, IView, ViewM
 mod controls;
 mod main_menu;
 mod message;
-mod provider;
 mod style;
 mod views;
+
+#[cfg(not(target_arch = "wasm32"))]
+mod provider;
+
+#[cfg(target_arch = "wasm32")]
+#[path = "./provider_wasm32.rs"]
+mod provider;
 
 fn main() -> iced::Result {
     MainWindow::run(Settings::default())

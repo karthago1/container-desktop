@@ -63,7 +63,6 @@ impl ImageProvider for Simulation {
 #[async_trait]
 impl ContainerProvider for Simulation {
     async fn list_containers(&self) -> Result<Vec<Container>> {
-        thread::sleep(time::Duration::from_secs(1));
         future::ready(Ok(vec![
             Container::new(
                 "sha256:ea49d6ddc21b6ca2e00b002e7f254325df0ff7eb1a9eb8a9a15ad151eda39be0"
