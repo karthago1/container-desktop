@@ -1,7 +1,9 @@
 use anyhow::Result;
 use async_trait::async_trait;
 use bollard::{
-    container::{ListContainersOptions, StartContainerOptions, StopContainerOptions},
+    container::{
+        ListContainersOptions, RemoveContainerOptions, StartContainerOptions, StopContainerOptions,
+    },
     image::ListImagesOptions,
     Docker,
 };
@@ -124,14 +126,17 @@ impl ContainerProvider for DockerClient {
         Ok(())
     }
 
-    async fn clone_container(&self, _id: String, _new_name: String) -> Result<()>
-    {
+    async fn clone_container(&self, _id: String, _new_name: String) -> Result<()> {
         todo!("docker clone container")
     }
 
-    async fn remove_container(&self, _id: String) -> Result<()>
-    {
-        todo!("docker remove container")
+    async fn remove_container(&self, id: String) -> Result<()> {
+        println!("remove container {id}");
+        tokio_run(
+            self.docker
+                .remove_container(&id, None::<RemoveContainerOptions>),
+        )?;
+        Ok(())
     }
 }
 
