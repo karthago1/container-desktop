@@ -83,6 +83,11 @@ impl ImageProvider for Client {
         println!("export image {id} to {path}");
         Ok(())
     }
+
+    async fn delete_image(&self, id: String) -> Result<()> {
+        println!("delete image {id}");
+        Ok(())
+    }
 }
 
 fn read_image(proxy: &Proxy<&Connection>, name: &str, is_machine: bool) -> String {

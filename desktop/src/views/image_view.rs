@@ -26,6 +26,7 @@ enum ImageMsg {
     View(ListMsg),
     NewImages(ViewResult<Vec<Image>>),
     Exported(ViewResult<()>),
+    Deleted(ViewResult<()>),
 }
 
 static ACTION_EMPTY: u32 = 0;
@@ -66,7 +67,7 @@ impl IView for ImageView {
             ViewState::Loaded => self
                 .list_view
                 .view(0, None)
-                .map(move |msg| ViewMessage::Loaded(Box::new(ImageMsg::View(msg)))),
+                .map(move |msg| view_msg!(ImageMsg::View(msg))),
         }
     }
 
@@ -85,6 +86,8 @@ impl IView for ImageView {
                         ListMsg::Item(row, ListItemMsg::Clicked(col, action)) => {
                             return if action == ACTION_EXPORT {
                                 self.export_image(row, col)
+                            } else if action == ACTION_DELETE {
+                                self.delete_image(row, col)
                             } else {
                                 println!("clicked {row}, {col}");
                                 Command::none()
@@ -109,6 +112,10 @@ impl IView for ImageView {
                         Err(err) => println!("{:?}", err),
                     },
                     ImageMsg::Exported(res) => match res {
+                        Ok(_) => (),
+                        Err(err) => println!("{:?}", err),
+                    },
+                    ImageMsg::Deleted(res) => match res {
                         Ok(_) => (),
                         Err(err) => println!("{:?}", err),
                     },
@@ -137,7 +144,7 @@ impl ImageView {
         }
     }
 
-    fn export_image(&mut self, row: usize, col: usize) -> Command<ViewMessage> {
+    fn export_image(&mut self, row: usize, _col: usize) -> Command<ViewMessage> {
         //self.set_busy_cell(row, col);
         let image = &self.images[row];
         let id = image.id.clone();
@@ -148,9 +155,18 @@ impl ImageView {
         )
     }
 
+    fn delete_image(&mut self, row: usize, _col: usize) -> Command<ViewMessage> {
+        //self.set_busy_cell(row, col);
+        let image = &self.images[row];
+        let id = image.id.clone();
+        Command::perform(self.plugin().delete_image(id), |e| {
+            view_msg!(ImageMsg::Deleted(view_result!(e)))
+        })
+    }
+
     fn create_load_cmd(&self) -> Command<ViewMessage> {
         Command::perform(self.plugin().list_images(), |imgs| {
-            ViewMessage::Loaded(Box::new(ImageMsg::NewImages(view_result!(imgs))))
+            view_msg!(ImageMsg::NewImages(view_result!(imgs)))
         })
     }
 

@@ -6,7 +6,7 @@ use bollard::{
     container::{
         ListContainersOptions, RemoveContainerOptions, StartContainerOptions, StopContainerOptions,
     },
-    image::ListImagesOptions,
+    image::{ListImagesOptions, RemoveImageOptions},
     Docker,
 };
 use container_core::{
@@ -78,6 +78,13 @@ impl ImageProvider for DockerClient {
             }
         }
 
+        Ok(())
+    }
+
+    async fn delete_image(&self, id: String) -> Result<()> {
+        println!("delete image {id}");
+        let options = RemoveImageOptions::default();
+        let _list = tokio_run(self.docker.remove_image(&id, Some(options), None))?;
         Ok(())
     }
 }

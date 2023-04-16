@@ -64,6 +64,11 @@ impl ImageProvider for Simulation {
     async fn export_image(&self, _id: String, _path: String) -> Result<()> {
         Ok(())
     }
+
+    async fn delete_image(&self, id: String) -> Result<()> {
+        println!("delete image {id}");
+        Ok(())
+    }
 }
 
 #[async_trait]
