@@ -20,7 +20,7 @@ impl button::StyleSheet for ButtonChip {
         Appearance {
             shadow_offset: Vector::default(),
             background: Some(Background::Color(style.palette().success)),
-            border_radius: self.radius,
+            border_radius: self.radius.into(),
             border_width: 0.0,
             border_color: Color::TRANSPARENT,
             text_color: Color::BLACK,

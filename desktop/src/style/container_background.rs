@@ -1,4 +1,4 @@
-use iced::{widget::container, Background, Color, Theme};
+use iced::{widget::container, Background, Color, Theme, BorderRadius};
 
 use super::colors;
 
@@ -17,7 +17,7 @@ impl container::StyleSheet for ContainerBackground {
         container::Appearance {
             text_color: None,
             background: Some(Background::Color(self.0)),
-            border_radius: 5.,
+            border_radius: BorderRadius::from(5.),
             border_width: 0.,
             border_color: Color::TRANSPARENT,
         }

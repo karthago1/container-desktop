@@ -38,7 +38,7 @@ impl button::StyleSheet for Button {
         Appearance {
             shadow_offset: Vector::default(),
             background: self.background,
-            border_radius: self.radius,
+            border_radius: self.radius.into(),
             border_width: 0.0,
             border_color: Color::TRANSPARENT,
             text_color: self.text_color,

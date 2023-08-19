@@ -10,8 +10,8 @@ homepage = "git@github.com:karthago1/container-desktop.git"
 [dependencies]
 anyhow = "1.0.70"
 container_core = { version = "0.1.0", path = "../container_core" }
-iced = { version = "0.9.0", features = ["image", "async-std"] }
-iced_native = "0.10.1"
+iced = { version = "0.10.0", features = ["image", "async-std"] }
+iced_runtime = "0.1.1"
 once_cell = "1.17.1"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
