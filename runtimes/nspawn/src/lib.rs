@@ -93,9 +93,9 @@ impl ImageProvider for Client {
 fn read_image(proxy: &Proxy<&Connection>, name: &str, is_machine: bool) -> String {
     use systemd_machine::OrgFreedesktopMachine1Manager;
     let res = if is_machine {
-        proxy.get_machine_osrelease(&name)
+        proxy.get_machine_osrelease(name)
     } else {
-        proxy.get_image_osrelease(&name)
+        proxy.get_image_osrelease(name)
     };
 
     if let Ok(dict) = res {

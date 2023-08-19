@@ -2,7 +2,7 @@ use crate::{main_menu::MainMenuMessage, views::ViewMessage};
 
 #[derive(Debug)]
 pub enum Message {
-    MenuMessage(MainMenuMessage),
+    Menu(MainMenuMessage),
     View(IndexedViewMessage),
     Update,
 }

@@ -14,7 +14,7 @@ pub static ICON_SETTINGS: usize = 7;
 pub static ICON_STOP: usize = 8;
 pub static ICON_SAVE_AS: usize = 9;
 
-const ICON_BYTES: &[&'static [u8]] = &[
+const ICON_BYTES: &[&[u8]] = &[
     include_bytes!("../../icons/clone.png"),
     include_bytes!("../../icons/container.png"),
     include_bytes!("../../icons/delete.png"),

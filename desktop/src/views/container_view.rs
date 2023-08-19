@@ -12,7 +12,7 @@ use crate::{
         ui::icon_button,
     },
     provider::Provider,
-    views::{view_result, IView, ViewError, ViewMessage, ViewState, view_msg},
+    views::{view_msg, view_result, IView, ViewError, ViewMessage, ViewState},
 };
 
 use super::ViewResult;
@@ -62,10 +62,7 @@ impl IView for ContainerView {
             ViewState::Loaded => {
                 let (row, view) = self.create_detail_view();
 
-                let content = self
-                    .list_view
-                    .view(row, view)
-                    .map(move |msg| ContainerMsg::View(msg));
+                let content = self.list_view.view(row, view).map(ContainerMsg::View);
 
                 let result = match &self.error {
                     Some(err) => {

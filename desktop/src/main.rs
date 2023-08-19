@@ -93,7 +93,7 @@ impl Application for MainWindow {
 
     fn update(&mut self, message: Message) -> Command<Message> {
         match message {
-            Message::MenuMessage(message) => {
+            Message::Menu(message) => {
                 let _ = self.views[self.menu.selected_index].update(ViewMessage::Unselected);
                 self.menu.update(message);
                 let view_index = self.menu.selected_index;
@@ -124,7 +124,7 @@ impl Application for MainWindow {
 
     fn view(&self) -> Element<Message> {
         row(vec![
-            self.menu.view().map(Message::MenuMessage),
+            self.menu.view().map(Message::Menu),
             self.views[self.menu.selected_index]
                 .view()
                 .map(|msg| Message::View(IndexedViewMessage::new(self.menu.selected_index, msg))),
